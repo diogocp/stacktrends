@@ -7,20 +7,36 @@ from xml.etree import ElementTree
 def main():
     con = sqlite3.connect("stackoverflow.sqlite")
 
-    import_table(con, "Tags.xml", ("TagName", "Count"))
-    import_table(con, "Users.xml", ("AccountId", "Age", "Location"))
-    import_table(con, "Posts.xml", ("CreationDate", "OwnerUserId", "Tags"))
+    import_table(con, "Tags.xml",
+                 ("Id", "TagName", "Count"),
+                 ("INTEGER PRIMARY KEY", "TEXT", "INTEGER"))
+    import_table(con, "Users.xml",
+                 ("Id", "Location", "Age"),
+                 ("INTEGER PRIMARY KEY", "TEXT", "INTEGER"))
+    import_table(con, "Posts.xml",
+                 ("Id", "PostTypeId", "ParentId", "CreationDate",
+                  "OwnerUserId", "Tags", "AnswerCount"),
+                 ("INTEGER PRIMARY KEY", "INTEGER", "INTEGER", "TEXT",
+                  "INTEGER", "TEXT", "INTEGER"))
+
+    with con:
+        con.execute("VACUUM")
 
     con.close()
 
 
-def import_table(con, filename, attribs):
+def import_table(con, filename, attribs, datatypes=None):
+    if datatypes is None:
+        colspec = attribs
+    else:
+        colspec = [" ".join(x) for x in zip(attribs, datatypes)]
+
+    colspec = "(" + ", ".join(colspec) + ")"
+
     with open(filename, encoding="utf-8") as f:
         iterparser = ElementTree.iterparse(f, events=("start", "end"))
         _, root = next(iterparser)
-
         table = root.tag
-        colspec = "(" + ", ".join(attribs) + ")"
 
         with con:
             con.execute("DROP TABLE IF EXISTS " + table)
