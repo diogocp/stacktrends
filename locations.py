@@ -9,7 +9,7 @@ def main():
     con = sqlite3.connect("stackoverflow.sqlite")
 
     cursor = con.cursor()
-    cursor.execute("SELECT Location FROM users GROUP BY Location")
+    cursor.execute("SELECT DISTINCT Location FROM users")
     locations = list(zip(*cursor.fetchall()))[0]
 
     tmpi = 0
