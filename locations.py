@@ -2,7 +2,7 @@
 
 import sqlite3
 
-from geopy.geocoders import GoogleV3
+import geopy.geocoders
 
 
 def main():
@@ -15,8 +15,9 @@ def main():
     tmpi = 0
     loc_country = list()
     for loc in locations:
-        country = get_country_google(loc)
-        loc_country.append((loc, country))
+        country_google = get_country_google(loc)
+        country_osm = get_country_osm(loc)
+        loc_country.append((loc, country_google, country_osm))
 
         tmpi = tmpi+1
         if tmpi > 20:
@@ -24,15 +25,15 @@ def main():
 
     with con:
         con.execute("DROP TABLE IF EXISTS locations")
-        con.execute("CREATE TABLE locations(Location TEXT, Country TEXT)")
-        con.executemany("""INSERT INTO locations(Location, Country)
-                           VALUES (?, ?)""", loc_country)
+        con.execute("CREATE TABLE locations(Location TEXT, Google TEXT, OSM TEXT)")
+        con.executemany("""INSERT INTO locations(Location, Google, OSM)
+                           VALUES (?, ?, ?)""", loc_country)
 
     con.close()
 
 
 def get_country_google(location):
-    geolocator = GoogleV3()
+    geolocator = geopy.geocoders.GoogleV3()
 
     # TODO handle webservice errors
     try:
@@ -40,6 +41,20 @@ def get_country_google(location):
         for component in response.raw["address_components"]:
             if "country" in component["types"]:
                 return component["short_name"]
+    except Exception:
+        pass
+
+    return None
+
+
+def get_country_osm(location):
+    geolocator = geopy.geocoders.Nominatim()
+
+    # TODO handle webservice errors
+    try:
+        response = geolocator.geocode(location)
+        country = response.address.split(",")[-1].strip()
+        return country
     except Exception:
         pass
 
