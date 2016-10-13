@@ -12,53 +12,62 @@ def main():
     cursor.execute("SELECT DISTINCT Location FROM users")
     locations = list(zip(*cursor.fetchall()))[0]
 
-    tmpi = 0
-    loc_country = list()
-    for loc in locations:
-        country_google = get_country_google(loc)
-        country_osm = get_country_osm(loc)
-        loc_country.append((loc, country_google, country_osm))
+    geocoders = [GoogleCountryCoder(),
+                 NominatimCountryCoder()]
 
-        tmpi = tmpi+1
-        if tmpi > 20:
-            break
+    coded_locations = []
+    for location in locations:
+        candidates = []
+        for geocoder in geocoders:
+            candidates.append(geocoder.getCountry(location))
+        coded_locations.append(tuple([location] + [c for c in candidates]))
+
+    print(coded_locations)
 
     with con:
         con.execute("DROP TABLE IF EXISTS locations")
         con.execute("CREATE TABLE locations(Location TEXT, Google TEXT, OSM TEXT)")
         con.executemany("""INSERT INTO locations(Location, Google, OSM)
-                           VALUES (?, ?, ?)""", loc_country)
+                           VALUES (?, ?, ?)""", coded_locations)
 
     con.close()
 
 
-def get_country_google(location):
-    geolocator = geopy.geocoders.GoogleV3()
+class CountryCoder:
+    def getCountry(self, location):
+        raise NotImplementedError
 
-    # TODO handle webservice errors
-    try:
-        response = geolocator.geocode(location)
+
+class GoogleCountryCoder(CountryCoder):
+    def __init__(self):
+        self._geocoder = geopy.geocoders.GoogleV3()
+
+    def getCountry(self, location):
+        # TODO handle webservice errors
+        response = self._geocoder.geocode(location)
+
+        if response is None:
+            return None
+
         for component in response.raw["address_components"]:
             if "country" in component["types"]:
                 return component["short_name"]
-    except Exception:
-        pass
 
-    return None
+        return None
 
 
-def get_country_osm(location):
-    geolocator = geopy.geocoders.Nominatim()
+class NominatimCountryCoder(CountryCoder):
+    def __init__(self):
+        self._geocoder = geopy.geocoders.Nominatim()
 
-    # TODO handle webservice errors
-    try:
-        response = geolocator.geocode(location)
-        country = response.address.split(",")[-1].strip()
-        return country
-    except Exception:
-        pass
+    def getCountry(self, location):
+        # TODO handle webservice errors
+        response = self._geocoder.geocode(location, addressdetails=True)
 
-    return None
+        if response is None:
+            return None
+
+        return response.raw["address"]["country_code"].upper()
 
 
 if __name__ == "__main__":
