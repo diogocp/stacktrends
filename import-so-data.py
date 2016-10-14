@@ -19,9 +19,12 @@ def main():
                  ("INTEGER PRIMARY KEY", "INTEGER", "INTEGER", "TEXT",
                   "INTEGER", "TEXT", "INTEGER"))
 
-    with con:
-        con.execute("VACUUM")
+    # Clean up users.Location
+    con.execute("UPDATE users SET Location = TRIM(Location)")
+    con.execute("UPDATE users SET Location = NULL WHERE Location = ''")
+    con.commit()
 
+    con.execute("VACUUM")
     con.close()
 
 
