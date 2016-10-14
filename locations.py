@@ -14,9 +14,8 @@ def main():
     con = sqlite3.connect("stackoverflow.sqlite")
 
     cursor = con.cursor()
-    cursor.execute("""SELECT DISTINCT TRIM(Location) AS Location
-                      FROM users
-                      WHERE Location != '' """)
+    cursor.execute("""SELECT DISTINCT Location FROM users
+                      WHERE Location IS NOT NULL""")
     locations = list(zip(*cursor.fetchall()))[0]
 
     geocoders = [BingCountryCoder(BING_API_KEY),
@@ -54,7 +53,7 @@ class CountryCoder:
 
 class BingCountryCoder(CountryCoder):
     def __init__(self, api_key):
-        self._geocoder = geopy.geocoders.Bing(api_key, timeout=10)
+        self._geocoder = geopy.geocoders.Bing(api_key, timeout=30)
 
     def getCountry(self, location):
         response = None
@@ -64,15 +63,15 @@ class BingCountryCoder(CountryCoder):
         except geopy.exc.GeopyError as e:
             print("[Bing] '%s':" % location, e)
 
-        if response is None:
+        try:
+            return response.raw["address"]["countryRegionIso2"]
+        except (AttributeError, KeyError):
             return None
-
-        return response.raw["address"].get("countryRegionIso2")
 
 
 class GoogleCountryCoder(CountryCoder):
     def __init__(self):
-        self._geocoder = geopy.geocoders.GoogleV3(timeout=10)
+        self._geocoder = geopy.geocoders.GoogleV3(timeout=30)
 
     def getCountry(self, location):
         response = None
@@ -81,17 +80,19 @@ class GoogleCountryCoder(CountryCoder):
         except geopy.exc.GeopyError as e:
             print("[Google] '%s':" % location, e)
 
-        if response is None:
-            return None
+        try:
+            for component in response.raw["address_components"]:
+                if "country" in component.get("types", []):
+                    return component["short_name"]
+        except (AttributeError, KeyError):
+            pass
 
-        for component in response.raw["address_components"]:
-            if "country" in component["types"]:
-                return component["short_name"]
+        return None
 
 
 class NominatimCountryCoder(CountryCoder):
     def __init__(self):
-        self._geocoder = geopy.geocoders.Nominatim(timeout=10)
+        self._geocoder = geopy.geocoders.Nominatim(timeout=30)
 
     def getCountry(self, location):
         response = None
@@ -100,10 +101,10 @@ class NominatimCountryCoder(CountryCoder):
         except geopy.exc.GeopyError as e:
             print("[Nominatim] '%s':" % location, e)
 
-        if response is None:
+        try:
+            return response.raw["address"]["country_code"].upper()
+        except (AttributeError, KeyError):
             return None
-
-        return response.raw["address"]["country_code"].upper()
 
 
 if __name__ == "__main__":
