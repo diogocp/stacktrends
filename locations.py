@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
 
 from collections import Counter
+import configparser
 import sqlite3
 
 import geopy
 from tqdm import tqdm
 
 
-BING_API_KEY=""
-
-
 def main():
-    con = sqlite3.connect("stackoverflow.sqlite")
+    config = configparser.ConfigParser()
+    config.read("stacktrends.ini")
 
+    con = sqlite3.connect(config["Database"]["filename"])
     cursor = con.cursor()
     cursor.execute("""SELECT DISTINCT Location FROM users
                       WHERE Location IS NOT NULL""")
     locations = list(zip(*cursor.fetchall()))[0]
+    con.close()
 
-    geocoders = [BingCountryCoder(BING_API_KEY),
-                 GoogleCountryCoder(),
-                 NominatimCountryCoder()]
+    geocoders = [BingCountryCoder(config),
+                 GoogleCountryCoder(config),
+                 NominatimCountryCoder(config)]
 
     coded_locations = []
     for location in tqdm(locations):
@@ -37,12 +38,12 @@ def main():
         coded_locations.append(tuple([location, country]
                                      + [c for c in candidates]))
 
-    with con:
-        con.execute("DROP TABLE IF EXISTS locations")
-        con.execute("CREATE TABLE locations(Location TEXT, Country TEXT, Bing TEXT, Google TEXT, Nominatim TEXT)")
-        con.executemany("""INSERT INTO locations(Location, Country, Bing, Google, Nominatim)
+    con = sqlite3.connect(config["Database"]["filename"])
+    con.execute("DROP TABLE IF EXISTS locations")
+    con.execute("CREATE TABLE locations(Location TEXT, Country TEXT, Bing TEXT, Google TEXT, Nominatim TEXT)")
+    con.executemany("""INSERT INTO locations(Location, Country, Bing, Google, Nominatim)
                            VALUES (?, ?, ?, ?, ?)""", coded_locations)
-
+    con.commit()
     con.close()
 
 
@@ -52,8 +53,11 @@ class CountryCoder:
 
 
 class BingCountryCoder(CountryCoder):
-    def __init__(self, api_key):
-        self._geocoder = geopy.geocoders.Bing(api_key, timeout=30)
+    def __init__(self, config):
+        config = config["BingCountryCoder"]
+        api_key = config["api_key"]
+        timeout = float(config["timeout"])
+        self._geocoder = geopy.geocoders.Bing(api_key, timeout=timeout)
 
     def getCountry(self, location):
         response = None
@@ -70,8 +74,10 @@ class BingCountryCoder(CountryCoder):
 
 
 class GoogleCountryCoder(CountryCoder):
-    def __init__(self):
-        self._geocoder = geopy.geocoders.GoogleV3(timeout=30)
+    def __init__(self, config):
+        config = config["GoogleCountryCoder"]
+        timeout = float(config["timeout"])
+        self._geocoder = geopy.geocoders.GoogleV3(timeout=timeout)
 
     def getCountry(self, location):
         response = None
@@ -91,8 +97,10 @@ class GoogleCountryCoder(CountryCoder):
 
 
 class NominatimCountryCoder(CountryCoder):
-    def __init__(self):
-        self._geocoder = geopy.geocoders.Nominatim(timeout=30)
+    def __init__(self, config):
+        config = config["NominatimCountryCoder"]
+        timeout = float(config["timeout"])
+        self._geocoder = geopy.geocoders.Nominatim(timeout=timeout)
 
     def getCountry(self, location):
         response = None
