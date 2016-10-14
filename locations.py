@@ -5,7 +5,11 @@ import configparser
 import sqlite3
 
 import geopy
+import pycountry
 from tqdm import tqdm
+
+import thirdparty.geopy.geocoders.arcgis
+geopy.geocoders.ArcGIS = thirdparty.geopy.geocoders.arcgis.ArcGIS
 
 
 def main():
@@ -19,8 +23,9 @@ def main():
     locations = list(zip(*cursor.fetchall()))[0]
     con.close()
 
-    geocoders = [BingCountryCoder(config),
-                 GoogleCountryCoder(config),
+    geocoders = [ArcGISCountryCoder(config),
+                 BingCountryCoder(config),
+                 #GoogleCountryCoder(config),
                  NominatimCountryCoder(config)]
 
     coded_locations = []
@@ -40,8 +45,8 @@ def main():
 
     con = sqlite3.connect(config["Database"]["filename"])
     con.execute("DROP TABLE IF EXISTS locations")
-    con.execute("CREATE TABLE locations(Location TEXT, Country TEXT, Bing TEXT, Google TEXT, Nominatim TEXT)")
-    con.executemany("""INSERT INTO locations(Location, Country, Bing, Google, Nominatim)
+    con.execute("CREATE TABLE locations(Location TEXT, Country TEXT, ArcGIS TEXT, Bing TEXT, Nominatim TEXT)")
+    con.executemany("""INSERT INTO locations(Location, Country, ArcGIS, Bing, Nominatim)
                            VALUES (?, ?, ?, ?, ?)""", coded_locations)
     con.commit()
     con.close()
@@ -50,6 +55,26 @@ def main():
 class CountryCoder:
     def getCountry(self, location):
         raise NotImplementedError
+
+
+class ArcGISCountryCoder(CountryCoder):
+    def __init__(self, config):
+        config = config["ArcGISCountryCoder"]
+        timeout = float(config["timeout"])
+        self._geocoder = geopy.geocoders.ArcGIS(timeout=timeout)
+
+    def getCountry(self, location):
+        response = None
+        try:
+            response = self._geocoder.geocode(location)
+        except geopy.exc.GeopyError as e:
+            print("[ArcGIS] '%s':" % location, e)
+
+        try:
+            alpha3 = response.raw["feature"]["attributes"]["Country"]
+            return pycountry.countries.get(alpha3=alpha3).alpha2
+        except (AttributeError, KeyError):
+            return None
 
 
 class BingCountryCoder(CountryCoder):
