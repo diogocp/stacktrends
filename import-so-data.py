@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+import configparser
 import sqlite3
 from xml.etree import ElementTree
 
 
 def main():
-    con = sqlite3.connect("stackoverflow.sqlite")
+    config = configparser.ConfigParser()
+    config.read("stacktrends.ini")
+
+    con = sqlite3.connect(config["Database"]["filename"])
 
     import_table(con, "Tags.xml",
                  ("Id", "TagName", "Count"),
