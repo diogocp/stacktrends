@@ -14,7 +14,9 @@ def main():
     con = sqlite3.connect("stackoverflow.sqlite")
 
     cursor = con.cursor()
-    cursor.execute("SELECT DISTINCT Location FROM users")
+    cursor.execute("""SELECT DISTINCT TRIM(Location) AS Location
+                      FROM users
+                      WHERE Location != '' """)
     locations = list(zip(*cursor.fetchall()))[0]
 
     geocoders = [BingCountryCoder(BING_API_KEY),
