@@ -9,6 +9,8 @@ import pandas as pd
 import pycountry
 from tqdm import tqdm
 
+# The ArcGIS geocoder in geopy does not return the country code,
+# so we replace it with a modified local copy that does
 import thirdparty.geopy.geocoders.arcgis
 geopy.geocoders.ArcGIS = thirdparty.geopy.geocoders.arcgis.ArcGIS
 
@@ -20,31 +22,36 @@ def main():
     # Read distinct locations from the database
     con = sqlite3.connect(config["Database"]["filename"])
     locations = pd.read_sql_query("SELECT DISTINCT Location FROM users", con)
+    locations = locations["Location"]
     con.close()
 
-    # Drop locations that don't have any letters
-    locations = locations["Location"]
+    # Drop locations that don't have any letters (most likely trash)
     locations.where(locations.str.contains("[^\W\d_]"), inplace=True)
     locations.dropna(inplace=True)
 
     # Set up geocoders
+    # Google is disabled because it has a limit of 2500 queries per day
     geocoders = [ArcGISCountryCoder(config),
                  BingCountryCoder(config),
                  #GoogleCountryCoder(config),
                  NominatimCountryCoder(config)]
 
+    # Main loop: for each location, query all the configured geocoders
     countries = pd.DataFrame(columns={"Location", "Country"})
     for location in tqdm(locations):
         candidate_countries = []
         for geocoder in geocoders:
             candidate_countries.append(geocoder.getCountry(location))
 
+        # Store a country for this location only if there is a majority
+        # of geocoders in agreement
         most_common_country = Counter(candidate_countries).most_common(1)[0]
         if most_common_country[1] > len(geocoders)/2:
             countries = countries.append({"Location": location,
                                           "Country": most_common_country[0]
                                          }, ignore_index=True)
 
+    # Write the results to the SQLite database
     con = sqlite3.connect(config["Database"]["filename"])
     countries.to_sql("locations", con, if_exists="replace", index=False)
     con.close()
