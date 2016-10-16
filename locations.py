@@ -58,15 +58,25 @@ class CountryCoder:
 class ArcGISCountryCoder(CountryCoder):
     def __init__(self, config):
         config = config["ArcGISCountryCoder"]
-        timeout = float(config["timeout"])
+        timeout = float(config.get("timeout", 10))
+        self.retries = int(config.get("retries", 0))
+
         self._geocoder = geopy.geocoders.ArcGIS(timeout=timeout)
 
     def getCountry(self, location):
         response = None
-        try:
-            response = self._geocoder.geocode(location)
-        except geopy.exc.GeopyError as e:
-            print("[ArcGIS] '%s':" % location, e)
+        for attempt in range(self.retries + 1):
+            try:
+                response = self._geocoder.geocode(location)
+                break
+            except geopy.exc.GeocoderTimedOut as e:
+                if attempt < self.retries:
+                    continue
+                else:
+                    print("[ArcGIS] '%s':" % location, e)
+                    break
+            except geopy.exc.GeopyError as e:
+                print("[ArcGIS] '%s':" % location, e)
 
         try:
             alpha3 = response.raw["feature"]["attributes"]["Country"]
@@ -79,16 +89,26 @@ class BingCountryCoder(CountryCoder):
     def __init__(self, config):
         config = config["BingCountryCoder"]
         api_key = config["api_key"]
-        timeout = float(config["timeout"])
+        timeout = float(config.get("timeout", 10))
+        self.retries = int(config.get("retries", 0))
+
         self._geocoder = geopy.geocoders.Bing(api_key, timeout=timeout)
 
     def getCountry(self, location):
         response = None
-        try:
-            response = self._geocoder.geocode(location,
-                                              include_country_code=True)
-        except geopy.exc.GeopyError as e:
-            print("[Bing] '%s':" % location, e)
+        for attempt in range(self.retries + 1):
+            try:
+                response = self._geocoder.geocode(location,
+                                                  include_country_code=True)
+                break
+            except geopy.exc.GeocoderTimedOut as e:
+                if attempt < self.retries:
+                    continue
+                else:
+                    print("[Bing] '%s':" % location, e)
+                    break
+            except geopy.exc.GeopyError as e:
+                print("[Bing] '%s':" % location, e)
 
         try:
             return response.raw["address"]["countryRegionIso2"]
@@ -99,15 +119,25 @@ class BingCountryCoder(CountryCoder):
 class GoogleCountryCoder(CountryCoder):
     def __init__(self, config):
         config = config["GoogleCountryCoder"]
-        timeout = float(config["timeout"])
+        timeout = float(config.get("timeout", 10))
+        self.retries = int(config.get("retries", 0))
+
         self._geocoder = geopy.geocoders.GoogleV3(timeout=timeout)
 
     def getCountry(self, location):
         response = None
-        try:
-            response = self._geocoder.geocode(location)
-        except geopy.exc.GeopyError as e:
-            print("[Google] '%s':" % location, e)
+        for attempt in range(self.retries + 1):
+            try:
+                response = self._geocoder.geocode(location)
+                break
+            except geopy.exc.GeocoderTimedOut as e:
+                if attempt < self.retries:
+                    continue
+                else:
+                    print("[Google] '%s':" % location, e)
+                    break
+            except geopy.exc.GeopyError as e:
+                print("[Google] '%s':" % location, e)
 
         try:
             for component in response.raw["address_components"]:
@@ -122,15 +152,26 @@ class GoogleCountryCoder(CountryCoder):
 class NominatimCountryCoder(CountryCoder):
     def __init__(self, config):
         config = config["NominatimCountryCoder"]
-        timeout = float(config["timeout"])
+        timeout = float(config.get("timeout", 10))
+        self.retries = int(config.get("retries", 0))
+
         self._geocoder = geopy.geocoders.Nominatim(timeout=timeout)
 
     def getCountry(self, location):
         response = None
-        try:
-            response = self._geocoder.geocode(location, addressdetails=True)
-        except geopy.exc.GeopyError as e:
-            print("[Nominatim] '%s':" % location, e)
+        for attempt in range(self.retries + 1):
+            try:
+                response = self._geocoder.geocode(location,
+                                                  addressdetails=True)
+                break
+            except geopy.exc.GeocoderTimedOut as e:
+                if attempt < self.retries:
+                    continue
+                else:
+                    print("[Nominatim] '%s':" % location, e)
+                    break
+            except geopy.exc.GeopyError as e:
+                print("[Nominatim] '%s':" % location, e)
 
         try:
             return response.raw["address"]["country_code"].upper()
