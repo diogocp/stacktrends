@@ -45,7 +45,34 @@ def main():
     new_index = np.hstack([[post_id] * len(tag) for post_id, tag
                            in posts["Tags"].iteritems()])
     posts_tags = pd.DataFrame({"Tag": np.hstack(posts["Tags"])}, new_index)
-    posts_long = posts_tags.join(posts[["CreationDate", "OwnerUserId"]])
+    posts = posts_tags.join(posts[["CreationDate", "OwnerUserId"]])
+
+    # Merge users and countries
+    users.reset_index(inplace=True)
+    users = users.merge(locations, how="left", on="Location")
+    users.set_index("Id", inplace=True)
+
+    # Merge posts and countries
+    posts = posts.merge(users[["Country"]], how="left",
+                        left_on="OwnerUserId", right_index=True)
+
+    # Replace NaN with None in missing countries
+    posts.loc[:, "Country"] = posts["Country"].where(
+                                  pd.notnull(posts["Country"]), None)
+
+    # Keep only the date part of CreationDate (drop the time)
+    posts.loc[:, "CreationDate"] = posts["CreationDate"].dt.date
+
+    # Simplify column names
+    posts = posts.rename(columns={"Tag": "tag",
+                                  "CreationDate": "date",
+                                  "OwnerUserId": "user",
+                                  "Country": "country"})
+
+    # Output to SQLite database
+    con = sqlite3.connect(config["Database"]["filename"])
+    posts.to_sql("posts_long", con, if_exists="replace", index_label="post")
+    con.close()
 
 
 if __name__ == "__main__":
