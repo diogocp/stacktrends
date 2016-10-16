@@ -5,6 +5,7 @@ import configparser
 import sqlite3
 
 import geopy
+import pandas as pd
 import pycountry
 from tqdm import tqdm
 
@@ -16,39 +17,36 @@ def main():
     config = configparser.ConfigParser()
     config.read("stacktrends.ini")
 
+    # Read distinct locations from the database
     con = sqlite3.connect(config["Database"]["filename"])
-    cursor = con.cursor()
-    cursor.execute("""SELECT DISTINCT Location FROM users
-                      WHERE Location IS NOT NULL""")
-    locations = list(zip(*cursor.fetchall()))[0]
+    locations = pd.read_sql_query("SELECT DISTINCT Location FROM users", con)
     con.close()
 
+    # Drop locations that don't have any letters
+    locations = locations["Location"]
+    locations.where(locations.str.contains("[^\W\d_]"), inplace=True)
+    locations.dropna(inplace=True)
+
+    # Set up geocoders
     geocoders = [ArcGISCountryCoder(config),
                  BingCountryCoder(config),
                  #GoogleCountryCoder(config),
                  NominatimCountryCoder(config)]
 
-    coded_locations = []
+    countries = pd.DataFrame(columns={"Location", "Country"})
     for location in tqdm(locations):
-        candidates = []
+        candidate_countries = []
         for geocoder in geocoders:
-            candidates.append(geocoder.getCountry(location))
+            candidate_countries.append(geocoder.getCountry(location))
 
-        country = Counter(candidates).most_common(1)[0]
-        if country[1] > len(candidates)/2:
-            country = country[0]
-        else:
-            country = None
-
-        coded_locations.append(tuple([location, country]
-                                     + [c for c in candidates]))
+        most_common_country = Counter(candidate_countries).most_common(1)[0]
+        if most_common_country[1] > len(geocoders)/2:
+            countries = countries.append({"Location": location,
+                                          "Country": most_common_country[0]
+                                         }, ignore_index=True)
 
     con = sqlite3.connect(config["Database"]["filename"])
-    con.execute("DROP TABLE IF EXISTS locations")
-    con.execute("CREATE TABLE locations(Location TEXT, Country TEXT, ArcGIS TEXT, Bing TEXT, Nominatim TEXT)")
-    con.executemany("""INSERT INTO locations(Location, Country, ArcGIS, Bing, Nominatim)
-                           VALUES (?, ?, ?, ?, ?)""", coded_locations)
-    con.commit()
+    countries.to_sql("locations", con, if_exists="replace", index=False)
     con.close()
 
 
