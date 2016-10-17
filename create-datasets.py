@@ -26,7 +26,7 @@ def main():
 
     # Apply filters (configure in stacktrends.ini)
     my_countries = filter_countries(users_countries, posts_countries, config)
-    my_tags = filter_tags(posts_exploded, config)
+    my_tags = filter_tags(config)
 
     my_posts = posts_exploded[posts_exploded["Country"].isin(my_countries)]
     my_posts = my_posts[my_posts["Tag"].isin(my_tags)]
@@ -137,12 +137,11 @@ def filter_countries(users_countries, posts_countries, config):
     return ok_users.intersection(ok_posts)
 
 
-def filter_tags(posts, config):
-    min_posts = int(config["Filters"]["min_posts_per_tag"])
+def filter_tags(config):
+    selected_tags = pd.read_csv(config["Filters"]["selected_tags"])
+    selected_tags = selected_tags[selected_tags["selected"] == 1]
 
-    num_posts = posts["Tag"].reset_index().groupby("Tag")["index"].count()
-
-    return num_posts[num_posts >= min_posts].index
+    return selected_tags.set_index("tag").index
 
 
 if __name__ == "__main__":
