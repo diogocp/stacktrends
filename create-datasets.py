@@ -19,6 +19,79 @@ def main():
                               parse_dates=["CreationDate"])
     con.close()
 
+    # Merges
+    users_countries = merge_users_countries(users, locations)
+    posts_countries = merge_posts_countries(posts, users_countries)
+    posts_exploded = explode_tags(posts_countries)
+
+    # Apply filters (configure in stacktrends.ini)
+    my_countries = filter_countries(users_countries, posts_countries, config)
+    my_tags = filter_tags(posts_exploded, config)
+
+    my_posts = posts_exploded[posts_exploded["Country"].isin(my_countries)]
+    my_posts = my_posts[my_posts["Tag"].isin(my_tags)]
+
+    # Simplify column names
+    my_posts = my_posts.rename(columns={"Tag": "tag",
+                                        "CreationDate": "date",
+                                        "OwnerUserId": "user",
+                                        "Country": "country"})
+
+    # Create summary datasets
+    table_tag(my_posts).to_csv("tag.csv")
+    table_country_tag(my_posts).to_csv("country_tag.csv")
+    table_country_tag(my_posts, "month").to_csv("country_tag_month.csv")
+    table_country_tag(my_posts, "year").to_csv("country_tag_year.csv")
+
+    # Output to SQLite database
+    con = sqlite3.connect(config["Database"]["filename"])
+    my_posts.to_sql("my_posts", con, if_exists="replace", index_label="post")
+    con.close()
+
+
+def table_tag(posts):
+    posts = posts[["tag"]].reset_index()
+    return posts.groupby("tag").count()["index"].rename()
+
+def table_country_tag(posts, period=None):
+    posts = posts[["country", "tag", "date"]].reset_index()
+
+    if period is None:
+        return posts.groupby(["country", "tag"]).count()["index"].rename()
+    elif period == "year":
+        posts["date"] = posts["date"].dt.strftime("%Y")
+    elif period == "quarter":
+        raise NotImplemented
+    elif period == "month":
+        posts["date"] = posts["date"].dt.strftime("%Y-%m")
+    else:
+        raise ValueError("Invalid period '%s'" % period)
+
+    return posts.groupby(["country", "tag", "date"]).count()["index"].rename()
+
+
+def merge_users_countries(users, locations):
+    users = users.reset_index()
+    users = users.merge(locations, "left", on="Location")[["Id", "Country"]]
+    users.set_index("Id", inplace=True)
+
+    return users[pd.notnull(users["Country"])]
+
+
+def merge_posts_countries(posts, users):
+    posts = posts.merge(users, "left", left_on="OwnerUserId",
+                        right_index=True)
+
+    # Use None instead of NaN for missing countries
+    posts.loc[:, "Country"] = posts["Country"].where(
+                                  pd.notnull(posts["Country"]), None)
+
+    return posts
+
+
+def explode_tags(posts):
+    posts = posts.copy()
+
     # Tags are stored as a string in the format "<tag1><tag2><tag3>".
     # We want to convert this string to a list of strings, where each
     # element of the list is a tag. First, we remove the first ("<")
@@ -34,45 +107,40 @@ def main():
     posts.update(answers_tags[["Tags"]])
 
     # Keep only the columns we are going to use
-    posts = posts[["CreationDate", "Tags", "OwnerUserId"]]
+    posts = posts[["CreationDate", "Tags", "OwnerUserId", "Country"]]
 
     # Keep only posts that have at least one tag
     posts = posts[~pd.isnull(posts["Tags"])]
 
-    # Explode the posts table, so that each post appears n times,
-    # where n is the number of tags on that post. Each observation
-    # of a post will have a single tag.
+    # Finally, explode the posts table, so that each post appears
+    # n times, where n is the number of tags on that post. Each
+    # observation of a post will have a single tag.
     new_index = np.hstack([[post_id] * len(tag) for post_id, tag
                            in posts["Tags"].iteritems()])
     posts_tags = pd.DataFrame({"Tag": np.hstack(posts["Tags"])}, new_index)
-    posts = posts_tags.join(posts[["CreationDate", "OwnerUserId"]])
 
-    # Merge users and countries
-    users.reset_index(inplace=True)
-    users = users.merge(locations, how="left", on="Location")
-    users.set_index("Id", inplace=True)
+    return posts_tags.join(posts[["CreationDate", "OwnerUserId", "Country"]])
 
-    # Merge posts and countries
-    posts = posts.merge(users[["Country"]], how="left",
-                        left_on="OwnerUserId", right_index=True)
 
-    # Replace NaN with None in missing countries
-    posts.loc[:, "Country"] = posts["Country"].where(
-                                  pd.notnull(posts["Country"]), None)
+def filter_countries(users_countries, posts_countries, config):
+    min_users = int(config["Filters"]["min_users_per_country"])
+    min_posts = int(config["Filters"]["min_posts_per_country"])
 
-    # Keep only the date part of CreationDate (drop the time)
-    posts.loc[:, "CreationDate"] = posts["CreationDate"].dt.date
+    num_users = users_countries.reset_index().groupby("Country")["Id"].count()
+    ok_users = num_users[num_users >= min_users].index
 
-    # Simplify column names
-    posts = posts.rename(columns={"Tag": "tag",
-                                  "CreationDate": "date",
-                                  "OwnerUserId": "user",
-                                  "Country": "country"})
+    num_posts = posts_countries.reset_index().groupby("Country")["Id"].count()
+    ok_posts = num_posts[num_posts >= min_posts].index
 
-    # Output to SQLite database
-    con = sqlite3.connect(config["Database"]["filename"])
-    posts.to_sql("posts_long", con, if_exists="replace", index_label="post")
-    con.close()
+    return ok_users.intersection(ok_posts)
+
+
+def filter_tags(posts, config):
+    min_posts = int(config["Filters"]["min_posts_per_tag"])
+
+    num_posts = posts["Tag"].reset_index().groupby("Tag")["index"].count()
+
+    return num_posts[num_posts >= min_posts].index
 
 
 if __name__ == "__main__":
