@@ -38,10 +38,12 @@ def main():
                                         "Country": "country"})
 
     # Create summary datasets
-    table_tag(my_posts).to_csv("tag.csv")
-    table_country_tag(my_posts).to_csv("country_tag.csv")
-    table_country_tag(my_posts, "month").to_csv("country_tag_month.csv")
-    table_country_tag(my_posts, "year").to_csv("country_tag_year.csv")
+    summary_table(my_posts).to_csv("tag.csv")
+    summary_table(my_posts, period="month").to_csv("tag_month.csv")
+    summary_table(my_posts, period="year").to_csv("tag_year.csv")
+    summary_table(my_posts, by_country=True).to_csv("country_tag.csv")
+    summary_table(my_posts, "month", True).to_csv("country_tag_month.csv")
+    summary_table(my_posts, "year", True).to_csv("country_tag_year.csv")
 
     # Output to SQLite database
     con = sqlite3.connect(config["Database"]["filename"])
@@ -49,25 +51,25 @@ def main():
     con.close()
 
 
-def table_tag(posts):
-    posts = posts[["tag"]].reset_index()
-    return posts.groupby("tag").count()["index"].rename()
-
-def table_country_tag(posts, period=None):
+def summary_table(posts, period=None, by_country=False):
     posts = posts[["country", "tag", "date"]].reset_index()
 
-    if period is None:
-        return posts.groupby(["country", "tag"]).count()["index"].rename()
-    elif period == "year":
-        posts["date"] = posts["date"].dt.strftime("%Y")
-    elif period == "quarter":
-        raise NotImplemented
-    elif period == "month":
-        posts["date"] = posts["date"].dt.strftime("%Y-%m")
-    else:
-        raise ValueError("Invalid period '%s'" % period)
+    groups = ["tag"]
+    if by_country:
+        groups = ["country"] + groups
+    if period is not None:
+        groups = groups + ["date"]
 
-    return posts.groupby(["country", "tag", "date"]).count()["index"].rename()
+        if period == "year":
+            posts["date"] = posts["date"].dt.strftime("%Y")
+        elif period == "quarter":
+            raise NotImplemented
+        elif period == "month":
+            posts["date"] = posts["date"].dt.strftime("%Y-%m")
+        else:
+            raise ValueError("Invalid period '%s'" % period)
+
+    return posts.groupby(groups).count()["index"].rename()
 
 
 def merge_users_countries(users, locations):
