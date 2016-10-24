@@ -37,6 +37,11 @@ def main():
                                         "OwnerUserId": "user",
                                         "Country": "country"})
 
+    # Output to SQLite database
+    con = sqlite3.connect(config["Database"]["filename"])
+    my_posts.to_sql("my_posts", con, if_exists="replace", index_label="post")
+    con.close()
+
     # Create summary datasets
     summary_table(my_posts).to_csv("tag.csv")
     summary_table(my_posts, period="month").to_csv("tag_month.csv")
@@ -45,10 +50,7 @@ def main():
     summary_table(my_posts, "month", True).to_csv("country_tag_month.csv")
     summary_table(my_posts, "year", True).to_csv("country_tag_year.csv")
 
-    # Output to SQLite database
-    con = sqlite3.connect(config["Database"]["filename"])
-    my_posts.to_sql("my_posts", con, if_exists="replace", index_label="post")
-    con.close()
+    tag_correlation_table(my_posts).to_csv("tag_correlation.csv")
 
 
 def summary_table(posts, period=None, by_country=False):
@@ -70,6 +72,24 @@ def summary_table(posts, period=None, by_country=False):
             raise ValueError("Invalid period '%s'" % period)
 
     return posts.groupby(groups).count()["index"].rename()
+
+
+def tag_correlation_table(posts):
+    posts = posts[["tag", "user"]].reset_index()
+    user_tag = posts.groupby(["tag", "user"]).count()
+    user_tag = user_tag.reset_index().set_index("user")[["tag"]]
+
+    tag_pairs = user_tag.join(user_tag, lsuffix="1", rsuffix="2")
+    tag_pairs = tag_pairs.reset_index().groupby(["tag1", "tag2"]).count()
+    tag_pairs = tag_pairs.rename(columns={"user": "both"}).reset_index()
+
+    totals = user_tag.reset_index().groupby("tag").count()
+    tag_pairs = tag_pairs.merge(totals, left_on="tag1", right_index=True)
+    tag_pairs = tag_pairs.rename(columns={"user": "first"})
+
+    tag_pairs["prob"] = tag_pairs["both"] / tag_pairs["first"]
+
+    return tag_pairs.set_index(["tag1", "tag2"])["prob"]
 
 
 def merge_users_countries(users, locations):
