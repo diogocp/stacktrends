@@ -86,8 +86,7 @@ class ArcGISCountryCoder(CountryCoder):
                 print("[ArcGIS] '%s':" % location, e)
 
         try:
-            alpha3 = response.raw["feature"]["attributes"]["Country"]
-            return pycountry.countries.get(alpha3=alpha3).alpha2
+            return response.raw["feature"]["attributes"]["Country"]
         except (AttributeError, KeyError):
             return None
 
@@ -118,7 +117,8 @@ class BingCountryCoder(CountryCoder):
                 print("[Bing] '%s':" % location, e)
 
         try:
-            return response.raw["address"]["countryRegionIso2"]
+            alpha2 = response.raw["address"]["countryRegionIso2"]
+            return pycountry.countries.get(alpha2=alpha2).alpha3
         except (AttributeError, KeyError):
             return None
 
@@ -149,7 +149,8 @@ class GoogleCountryCoder(CountryCoder):
         try:
             for component in response.raw["address_components"]:
                 if "country" in component.get("types", []):
-                    return component["short_name"]
+                    alpha2 = component["short_name"]
+                    return pycountry.countries.get(alpha2=alpha2).alpha3
         except (AttributeError, KeyError):
             pass
 
@@ -181,7 +182,8 @@ class NominatimCountryCoder(CountryCoder):
                 print("[Nominatim] '%s':" % location, e)
 
         try:
-            return response.raw["address"]["country_code"].upper()
+            alpha2 = response.raw["address"]["country_code"].upper()
+            return pycountry.countries.get(alpha2=alpha2).alpha3
         except (AttributeError, KeyError):
             return None
 
