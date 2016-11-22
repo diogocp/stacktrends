@@ -118,7 +118,7 @@ class BingCountryCoder(CountryCoder):
 
         try:
             alpha2 = response.raw["address"]["countryRegionIso2"]
-            return pycountry.countries.get(alpha2=alpha2).alpha3
+            return pycountry.countries.get(alpha_2=alpha2).alpha_3
         except (AttributeError, KeyError):
             return None
 
@@ -150,7 +150,7 @@ class GoogleCountryCoder(CountryCoder):
             for component in response.raw["address_components"]:
                 if "country" in component.get("types", []):
                     alpha2 = component["short_name"]
-                    return pycountry.countries.get(alpha2=alpha2).alpha3
+                    return pycountry.countries.get(alpha_2=alpha2).alpha_3
         except (AttributeError, KeyError):
             pass
 
@@ -183,7 +183,7 @@ class NominatimCountryCoder(CountryCoder):
 
         try:
             alpha2 = response.raw["address"]["country_code"].upper()
-            return pycountry.countries.get(alpha2=alpha2).alpha3
+            return pycountry.countries.get(alpha_2=alpha2).alpha_3
         except (AttributeError, KeyError):
             return None
 
