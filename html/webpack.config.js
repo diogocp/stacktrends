@@ -1,5 +1,6 @@
 module.exports = {
     entry: {
+        linechart: "./js/linechart.js",
         choropleth: "./js/choropleth.js"
     },
     output: {
