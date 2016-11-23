@@ -10,11 +10,13 @@
     "topojson": "^1.6.20"
   },
   "devDependencies": {
+    "http-server": "^0.9.0",
     "uglify-js": "^2.7.4",
     "webpack": "^1.13.3"
   },
   "scripts": {
     "build": "webpack",
+    "start": "http-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
