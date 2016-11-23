@@ -1,4 +1,4 @@
-function linechart(element) {
+function draw(element) {
     var d3 = require("d3");
 
     // Set the dimensions of the canvas / graph
@@ -69,4 +69,4 @@ function linechart(element) {
     });
 }
 
-module.exports = {linechart};
+module.exports = {draw};

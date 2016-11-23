@@ -1,4 +1,4 @@
-function loadMapData() {
+function loadData() {
     var d3 = require("d3");
     var d3Promise = require("d3.promise");
 
@@ -35,7 +35,7 @@ function loadMapData() {
     });
 }
 
-function drawMap(elementId) {
+function draw(elementId) {
     var Datamap = require("datamaps");
 
     var map = new Datamap({
@@ -67,4 +67,4 @@ function drawMap(elementId) {
     return map;
 }
 
-module.exports = {loadMapData, drawMap};
+module.exports = {loadData, draw};

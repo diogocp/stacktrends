@@ -1,8 +1,5 @@
 module.exports = {
-    entry: {
-        linechart: "./js/linechart.js",
-        choropleth: "./js/choropleth.js"
-    },
+    entry: "./js/index.js",
     output: {
 //        filename: "[name].js",
         filename: "bundle.js",

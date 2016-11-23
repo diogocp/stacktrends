@@ -12,11 +12,11 @@
 </head>
 <body>
     <input type="text" id="tag-input" onkeyup="switchTag()" />
-    <div id="choropleth-div" style="border:0px; width: 1200px; height: 800px; position: relative;"></div>
+    <div id="choropleth-container" style="border:0px; width: 1200px; height: 800px; position: relative;"></div>
 
     <script>
-        var dataset = stacktrends.loadMapData();
-        var map = stacktrends.drawMap("choropleth-div");
+        var dataset = stacktrends.choropleth.loadData();
+        var map = stacktrends.choropleth.draw("choropleth-container");
 
         function switchTag() {
             var tag = document.getElementById("tag-input").value;
