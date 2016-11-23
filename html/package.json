@@ -1,0 +1,35 @@
+{
+  "name": "stacktrends",
+  "version": "1.0.0",
+  "description": "Visualize StackOverflow trends",
+  "main": "index.js",
+  "dependencies": {
+    "d3": "^3.5.17",
+    "d3.promise": "^1.1.0",
+    "datamaps": "^0.5.8",
+    "topojson": "^1.6.20"
+  },
+  "devDependencies": {
+    "uglify-js": "^2.7.4",
+    "webpack": "^1.13.3"
+  },
+  "scripts": {
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diogocp/stacktrends.git"
+  },
+  "author": "Group 33",
+  "contributors": [
+    "Diogo Pereira <diogo.pereira@tecnico.ulisboa.pt>",
+    "Ricardo Abreu <rjlabreu@gmail.com>",
+    "Ricardo Ponciano <ricardo.ponciano@tecnico.ulisboa.pt>"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/diogocp/stacktrends/issues"
+  },
+  "homepage": "https://github.com/diogocp/stacktrends"
+}
