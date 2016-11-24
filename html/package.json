@@ -12,10 +12,12 @@
   "devDependencies": {
     "http-server": "^0.9.0",
     "uglify-js": "^2.7.4",
-    "webpack": "^1.13.3"
+    "webpack": "^1.13.3",
+    "webpack-dev-server": "^1.16.2"
   },
   "scripts": {
     "build": "webpack",
+    "dev": "webpack-dev-server",
     "start": "http-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -10,7 +10,8 @@ You will need `npm` to build the project.
 ```sh
 cd html
 npm install
-npm run build
-npm run start
+npm run dev
 ```
 2. Open http://localhost:8080 in your browser.
+
+The project will be rebuilt automatically whenever a file is changed.
