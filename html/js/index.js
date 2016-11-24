@@ -1,4 +1,3 @@
-var linechart = require("./linechart.js");
-import Choropleth from "./choropleth.js";
-
-module.exports = {linechart, Choropleth};
+export {default as Barchart} from "./barchart.js";
+export {default as Linechart} from "./linechart.js";
+export {default as Choropleth} from "./choropleth.js";

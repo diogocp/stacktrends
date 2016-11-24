@@ -11,15 +11,15 @@
     <script src="dist/bundle.js" type="text/javascript" charset="utf-8"></script>
 </head>
 <body>
-    <input type="text" id="tag-input" onkeyup="switchTag()" />
+    <input type="text" id="tag-input" onkeyup="switchTag(this)" />
     <div id="choropleth-container" style="border:0px; width: 1200px; height: 800px; position: relative;"></div>
 
     <script>
         var choropleth = new stacktrends.Choropleth("choropleth-container");
         choropleth.loadData("data/country_tag.csv");
 
-        function switchTag() {
-            choropleth.update(document.getElementById("tag-input").value);
+        function switchTag(tag) {
+            choropleth.update(tag.value)
         }
     </script>
 </body>
