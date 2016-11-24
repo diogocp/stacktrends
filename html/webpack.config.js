@@ -4,6 +4,7 @@ module.exports = {
 //        filename: "[name].js",
         filename: "bundle.js",
         path: "./dist",
+        publicPath: "/dist/",
         library: "stacktrends"
     }
 }
