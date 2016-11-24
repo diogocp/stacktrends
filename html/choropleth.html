@@ -15,19 +15,11 @@
     <div id="choropleth-container" style="border:0px; width: 1200px; height: 800px; position: relative;"></div>
 
     <script>
-        var dataset = stacktrends.choropleth.loadData();
-        var map = stacktrends.choropleth.draw("choropleth-container");
+        var choropleth = new stacktrends.Choropleth("choropleth-container");
+        choropleth.loadData("data/country_tag.csv");
 
         function switchTag() {
-            var tag = document.getElementById("tag-input").value;
-            dataset.then(function(d) {
-                if(d[tag] !== undefined) {
-                    console.log("Switching tag to " + tag);
-                    map.updateChoropleth(d[tag], {reset: true});
-                } else {
-                    map.updateChoropleth(null, {reset: true});
-                }
-            });
+            choropleth.update(document.getElementById("tag-input").value);
         }
     </script>
 </body>

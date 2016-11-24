@@ -1,4 +1,4 @@
 var linechart = require("./linechart.js");
-var choropleth = require("./choropleth.js");
+import Choropleth from "./choropleth.js";
 
-module.exports = {linechart, choropleth};
+module.exports = {linechart, Choropleth};
