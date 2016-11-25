@@ -2,8 +2,9 @@ import d3 from "d3";
 
 
 export default class {
-    draw(element) {
-        // Set the dimensions of the canvas / graph
+	
+	constructor(element){
+		// Set the dimensions of the canvas / graph
         var margin = {top: 30, right: 20, bottom: 30, left: 50},
         width = 600 - margin.left - margin.right,
         height = 270 - margin.top - margin.bottom;
@@ -43,20 +44,6 @@ export default class {
             x.domain(d3.extent(data, function(d) { return d.year; }));
             y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
 
-            // Nest the entries by symbol
-            var dataNest = d3.nest()
-                .key(function(d) {return d.language;})
-                .entries(data);
-
-            // Loop through each language / key
-            dataNest.forEach(function(d) {
-
-                svg.append("path")
-                    .attr("class", "line")
-                    .attr("d", priceline(d.values));
-
-            });
-
             // Add the X Axis
             svg.append("g")
                 .attr("class", "x axis")
@@ -69,5 +56,54 @@ export default class {
                 .call(yAxis);
 
         });
+		this._lineChart = svg;
+		this._priceline = priceline;
+	}
+	
+	update(tags) {		
+        // gets the svg canvas and priceline
+        var svg = this._lineChart;
+
+        var priceline = this._priceline;
+
+		d3.select(".line").remove();
+		
+        // Get the data
+        d3.csv("data/lineChartExample.csv", function(error, data) {
+            data.forEach(function(d) {
+				if(tags.indexOf(d.language) !== -1){
+					d.frequency = +d.frequency;
+				}
+            });
+
+            // Nest the entries by symbol
+            var dataNest = d3.nest()
+                .key(function(d) {
+							return d.language;
+					})
+                .entries(data);
+
+			//Filter entries by tags received	
+			var dataFiltered = dataNest.filter(
+				function (d) {
+					console.log("key -> "+d.key);
+					if(tags.indexOf(d.key) !== -1){
+						return d.key;
+					}
+				}
+			)
+				
+            // Loop through each language / key
+            dataFiltered.forEach(function(d) {		
+                svg.append("path")
+                    .attr("class", "line")
+					.attr("d", priceline(d.values));
+
+            });
+
+        });
     }
-}
+
+
+	
+	}

@@ -2,32 +2,94 @@
 <html>
 <head>
 <meta charset="utf-8">
-    <style>
-        body { font: 12px Arial;}
-
-        path {
-            stroke: steelblue;
-            stroke-width: 2;
-            fill: none;
-        }
-
-        .axis path,
-        .axis line {
-            fill: none;
-            stroke: grey;
-            stroke-width: 1;
-            shape-rendering: crispEdges;
-        }
-    </style>
-
+    <link href="lineChart.css" rel="stylesheet"/>
     <script src="dist/bundle.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 </head>
 <body>
     <div id="linechart-container" style="width: 640px; height: 320px">
     </div>
+	
+	<!-- selection box -->
+	
+		<dl class="dropdown">
+
+			<dt>
+				<a href="#">
+					<span class="hida">Select</span>    
+					<p class="multiSel"></p>  
+				</a>
+			</dt>
+
+			<dd>
+				<div class="mutliSelect">
+					<ul>
+						<li>
+							<input type="checkbox" value="Java" />Java</li>
+						<li>
+							<input type="checkbox" value="Android" />Android</li>
+						<li>
+							<input type="checkbox" value="C" />C</li>
+					</ul>
+				</div>
+			</dd>
+			<button id="submitBtn">Filter</button>
+		</dl>
+
+	<!-- FIM da selection box -->	
+	
+	<!-- coisas da selection box -->
+	<script>
+		
+			$(".dropdown dt a").on('click', function() {
+				$(".dropdown dd ul").slideToggle('fast');
+			});
+
+			$(".dropdown dd ul li a").on('click', function() {
+				$(".dropdown dd ul").hide();
+			});
+
+			function getSelectedValue(id) {
+				return $("#" + id).find("dt a span.value").html();
+			}
+
+			$(document).bind('click', function(e) {
+				var $clicked = $(e.target);
+				if (!$clicked.parents().hasClass("dropdown")) $(".dropdown dd ul").hide();
+			});
+
+			$('.mutliSelect input[type="checkbox"]').on('click', function() {
+
+				var title = $(this).closest('.mutliSelect').find('input[type="checkbox"]').val(),
+				title = $(this).val() + ",";
+
+				if ($(this).is(':checked')) {
+					var html = '<span title="' + title + '">' + title + '</span>';
+					$('.multiSel').append(html);
+					$(".hida").hide();
+				} else {
+					$('span[title="' + title + '"]').remove();
+					var ret = $(".hida");
+					$('.dropdown dt a').append(ret);
+				}
+			});
+			
+	</script>
+	<!-- FIM coisas da selection box -->
+	
+	<!-- draw chart -->
     <script>
-        var linechart = new stacktrends.Linechart();
-        linechart.draw("div#linechart-container");
+        var linechart = new stacktrends.Linechart("div#linechart-container");
     </script>
-</body>
+
+	<!-- button click -->
+
+	<script>
+		$("#submitBtn").on('click', function() {
+				linechart.update($('.multiSel').text());
+			});
+	</script>
+	
+	
+	</body>
 </html>
