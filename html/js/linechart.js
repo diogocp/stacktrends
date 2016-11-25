@@ -71,9 +71,7 @@ export default class {
         // Get the data
         d3.csv("data/lineChartExample.csv", function(error, data) {
             data.forEach(function(d) {
-				if(tags.indexOf(d.language) !== -1){
 					d.frequency = +d.frequency;
-				}
             });
 
             // Nest the entries by symbol
@@ -86,7 +84,6 @@ export default class {
 			//Filter entries by tags received	
 			var dataFiltered = dataNest.filter(
 				function (d) {
-					console.log("key -> "+d.key);
 					if(tags.indexOf(d.key) !== -1){
 						return d.key;
 					}
