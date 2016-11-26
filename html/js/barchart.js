@@ -1,6 +1,5 @@
 import d3 from "d3";
 import d3Promise from "d3.promise";
-import nv from "nvd3";
 
 export default class {
     constructor() {
