@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tag List</title>
+    <style>
+        .search {
+            box-sizing: border-box;
+            width: 100%;
+            margin-left: 2px;
+            margin-right: 2px;
+            margin-bottom: 5px;
+        }
+        .list {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 5px;
+            padding-top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div id="taglist-container">
+        <input type="search" class="search" placeholder="Filter languages"
+               onkeypress="taglist.onSearchKeyPress(event)"/>
+        <fieldset class="list"></fieldset>
+    </div>
+
+    <script src="dist/bundle.js" charset="utf-8"></script>
+    <script>
+        var taglist = new stacktrends.Taglist();
+    </script>
+</body>
+</html>
