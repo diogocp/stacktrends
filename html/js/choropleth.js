@@ -5,7 +5,9 @@ import Datamap from "datamaps";
 
 export default class {
     constructor(elementId) {
-        var map = new Datamap({
+        this.dataset = this.loadData("data/country_tag.csv");
+
+        this.map = new Datamap({
             element: document.getElementById(elementId),
             projection: "mercator",
             fills: { defaultFill: "#f5f5f5" },
@@ -30,28 +32,24 @@ export default class {
                 }
             }
         });
-        this._map = map;
     }
 
-    update(tag) {
-        var map = this._map;
-        this._dataset.then(function(d) {
-            if(d[tag] !== undefined) {
-                console.log("Switching tag to " + tag);
-                map.updateChoropleth(d[tag], {reset: true});
-            } else {
-                map.updateChoropleth(null, {reset: true});
-            }
-        });
+    async update(tag) {
+        var data = (await this.dataset)[tag];
+
+        if(data === undefined) {
+            this.map.updateChoropleth(null, {reset: true});
+        } else {
+            this.map.updateChoropleth(data, {reset: true});
+        }
     }
 
     loadData(filename) {
         // Load data from CSV
-        this._dataset = d3Promise.csv(filename);
-        this._dataset = this._dataset.then(function(data) {
+        return d3Promise.csv(filename).then(data => {
             // Prepare the dataset
             var dataset = {};
-            data.forEach(function(item) {
+            data.forEach(item => {
                 if(typeof dataset[item.tag] === "undefined") {
                     dataset[item.tag] = {};
                 }

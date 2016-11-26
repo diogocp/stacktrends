@@ -1,5 +1,5 @@
 module.exports = {
-    entry: "./js/index.js",
+    entry: ["babel-polyfill", "./js/index.js"],
     output: {
         filename: "bundle.js",
         path: "./dist",
@@ -13,7 +13,8 @@ module.exports = {
             exclude: /node_modules/,
             loader: "babel-loader",
             query: {
-                presets: ['es2015']
+                presets: ["es2015"],
+                plugins: ["transform-async-to-generator"]
             }
           }
         ]
