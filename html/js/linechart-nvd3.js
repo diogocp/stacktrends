@@ -6,38 +6,62 @@ import nv from "nvd3";
 export default class {
     constructor(parentId) {
         this.dataset = this.loadData("data/tag_year.csv");
-        this.draw(parentId);
+        this.container = parentId;
+        this.draw();
+        window.addEventListener(
+                "tagSelectionChange",
+                this.onTagSelectionChange.bind(this),
+                false);
     }
 
-    async draw(parentId) {
-        var chart = nv.models.lineChart().options({
-            duration: 100,
-            useInteractiveGuideline: false
-        });
+    draw() {
+        var container = this.container;
 
-        // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
-        chart.xAxis
-            .axisLabel("Year")
-            .tickFormat(d3.format('.0f'))
-            .staggerLabels(false);
-
-        chart.yAxis
-            .axisLabel('Posts')
-            .tickFormat(d => {
-                if (d == null) {
-                    return 'N/A';
-                }
-                return d3.format(',.0f')(d);
+        nv.addGraph(function() {
+            var chart = nv.models.lineChart().options({
+                duration: 100,
+                useInteractiveGuideline: false
             });
 
-        var data = await this.dataset;
-        d3.select("#" + parentId).append('svg')
+            // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+            chart.xAxis
+                .axisLabel("Year")
+                .tickFormat(d3.format('.0f'))
+                .staggerLabels(false);
+
+            chart.yAxis
+                .axisLabel('Posts')
+                .tickFormat(d => {
+                    if (d == null) {
+                        return 'N/A';
+                    }
+                    return d3.format(',.0f')(d);
+                });
+
+            d3.select("#" + container)
+                .append("svg")
+                .datum([])
+                .call(chart);
+
+            nv.utils.windowResize(chart.update);
+
+            return chart;
+        },
+        chart => {
+            this.chart = chart;
+        });
+    }
+
+    async onTagSelectionChange(event) {
+        var selectedTags = event.detail;
+
+        var data = (await this.dataset)
+            .filter(item => selectedTags.indexOf(item.key) != -1);
+
+        d3.select("#" + this.container)
+            .select("svg")
             .datum(data)
-            .call(chart);
-
-        nv.utils.windowResize(chart.update);
-
-        this.chart = chart;
+            .call(this.chart);
     }
 
     async loadData(filename) {
