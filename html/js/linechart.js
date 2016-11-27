@@ -1,106 +1,83 @@
 import d3 from "d3";
+import d3Promise from "d3.promise";
+import nv from "nvd3";
 
 
 export default class {
-	
-	constructor(element){
-		// Set the dimensions of the canvas / graph
-        var margin = {top: 30, right: 20, bottom: 30, left: 50},
-        width = 600 - margin.left - margin.right,
-        height = 270 - margin.top - margin.bottom;
+    constructor(parentId) {
+        this.dataset = this.loadData("data/tag_year.csv");
+        this.container = parentId;
+        this.draw();
+        window.addEventListener(
+                "tagSelectionChange",
+                this.onTagSelectionChange.bind(this),
+                false);
+    }
 
-        // Set the ranges
-        var x = d3.time.scale().range([0, width]);
-        var y = d3.scale.linear().range([height, 0]);
+    draw() {
+        var container = this.container;
 
-        // Define the axes
-        var xAxis = d3.svg.axis().scale(x)
-            .orient("bottom").ticks(5);
-
-        var yAxis = d3.svg.axis().scale(y)
-            .orient("left").ticks(5);
-
-        // Define the line
-        var priceline = d3.svg.line()
-            .x(function(d) { return x(d.year); })
-            .y(function(d) { return y(d.frequency); });
-
-        // Adds the svg canvas
-        var svg = d3.select(element)
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform",
-                    "translate(" + margin.left + "," + margin.top + ")");
-
-        // Get the data
-        d3.csv("data/lineChartExample.csv", function(error, data) {
-            data.forEach(function(d) {
-                d.frequency = +d.frequency;
+        nv.addGraph(function() {
+            var chart = nv.models.lineChart().options({
+                duration: 100,
+                useInteractiveGuideline: false
             });
 
-            // Scale the range of the data
-            x.domain(d3.extent(data, function(d) { return d.year; }));
-            y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+            // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+            chart.xAxis
+                .axisLabel("Year")
+                .tickFormat(d3.format('.0f'))
+                .staggerLabels(false);
 
-            // Add the X Axis
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis);
+            chart.yAxis
+                .axisLabel('Posts')
+                .tickFormat(d => {
+                    if (d == null) {
+                        return 'N/A';
+                    }
+                    return d3.format(',.0f')(d);
+                });
 
-            // Add the Y Axis
-            svg.append("g")
-                .attr("class", "y axis")
-                .call(yAxis);
+            d3.select("#" + container)
+                .append("svg")
+                .datum([])
+                .call(chart);
 
-        });
-		this._lineChart = svg;
-		this._priceline = priceline;
-	}
-	
-	update(tags) {		
-        // gets the svg canvas and priceline
-        var svg = this._lineChart;
+            nv.utils.windowResize(chart.update);
 
-        var priceline = this._priceline;
-
-		d3.select(".line").remove();
-		
-        // Get the data
-        d3.csv("data/lineChartExample.csv", function(error, data) {
-            data.forEach(function(d) {
-					d.frequency = +d.frequency;
-            });
-
-            // Nest the entries by symbol
-            var dataNest = d3.nest()
-                .key(function(d) {
-							return d.language;
-					})
-                .entries(data);
-
-			//Filter entries by tags received	
-			var dataFiltered = dataNest.filter(
-				function (d) {
-					if(tags.indexOf(d.key) !== -1){
-						return d.key;
-					}
-				}
-			)
-				
-            // Loop through each language / key
-            dataFiltered.forEach(function(d) {		
-                svg.append("path")
-                    .attr("class", "line")
-					.attr("d", priceline(d.values));
-
-            });
-
+            return chart;
+        },
+        chart => {
+            this.chart = chart;
         });
     }
 
+    async onTagSelectionChange(event) {
+        var selectedTags = event.detail;
 
-	
-	}
+        var data = (await this.dataset)
+            .filter(item => selectedTags.indexOf(item.key) != -1);
+
+        d3.select("#" + this.container)
+            .select("svg")
+            .datum(data)
+            .call(this.chart);
+    }
+
+    async loadData(filename) {
+        var data = await d3Promise.csv(filename);
+        var dataset = {};
+
+        data.forEach(item => {
+            if(typeof dataset[item.tag] === "undefined") {
+                dataset[item.tag] = {key: item.tag, values: []};
+            }
+            dataset[item.tag].values.push({
+                x: +item.date,
+                y: +item.count
+            });
+        });
+
+        return Object.values(dataset);
+    }
+}
