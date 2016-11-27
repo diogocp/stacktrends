@@ -2,34 +2,14 @@
 <html>
 <head>
     <title>Stacktrends</title>
-    <style>
-        html {
-            height: 100%;
-            overflow: hidden;
-        }
-        body {
-            display: flex;
-            flex-flow: row nowrap;
-            height: 100%;
-            margin: 0;
-        }
-        #sidebar {
-            border: 0;
-        }
-        .layout-column {
-            display: flex;
-            flex-flow: column nowrap;
-            flex: 1;
-        }
-        .chart-container {
-            margin: 2px;
-            border: 1px dashed;
-            flex: 1;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/stacktrends.css">
 </head>
 <body>
-    <iframe id="sidebar" src="taglist.html"></iframe>
+    <div id="sidebar">
+        <input type="search" class="search" placeholder="Filter languages"
+               onkeypress="taglist.onSearchKeyPress(event)"/>
+        <fieldset class="list"></fieldset>
+    </div>
     <div class="layout-column">
         <div id="top-left" class="chart-container">
             <h2><a href="linechart.html">Line Chart</a></h2>
@@ -52,6 +32,7 @@
             choropleth.update(tag.value)
         }
 
+        var taglist = new stacktrends.Taglist("sidebar");
         var barchart = new stacktrends.Barchart("bottom-left");
         var choropleth = new stacktrends.Choropleth("bottom-right");
     </script>

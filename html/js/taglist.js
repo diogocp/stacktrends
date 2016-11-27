@@ -3,7 +3,7 @@ import d3Promise from "d3.promise";
 
 
 export default class {
-    constructor() {
+    constructor(parentId) {
         this.dataset = this.loadData("data/tag.csv");
         this.enabledTags = [];
 
@@ -16,7 +16,7 @@ export default class {
         };
 
         this.dataset.then(data => {
-            this.list = new List("taglist-container", options, data);
+            this.list = new List(parentId, options, data);
         });
     }
 
