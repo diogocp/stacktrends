@@ -2,13 +2,58 @@
 <html>
 <head>
     <title>Stacktrends</title>
+    <style>
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+        body {
+            display: flex;
+            flex-flow: row nowrap;
+            height: 100%;
+            margin: 0;
+        }
+        #sidebar {
+            border: 0;
+        }
+        .layout-column {
+            display: flex;
+            flex-flow: column nowrap;
+            flex: 1;
+        }
+        .chart-container {
+            margin: 2px;
+            border: 1px dashed;
+            flex: 1;
+        }
+    </style>
 </head>
 <body>
-    <h1>Stacktrends</h1>
-    <list>
-        <li><a href="choropleth.html">Choropleth</a></li>
-        <li><a href="linechart.html">Line Chart</a></li>
-        <li><a href="barchart.html">Bar Chart</a></li>
-    </list>
+    <iframe id="sidebar" src="taglist.html"></iframe>
+    <div class="layout-column">
+        <div id="top-left" class="chart-container">
+            <h2><a href="linechart.html">Line Chart</a></h2>
+        </div>
+        <div id="bottom-left" class="chart-container"></div>
+    </div>
+    <div class="layout-column">
+        <div id="top-right" class="chart-container"></div>
+        <div id="bottom-right" class="chart-container">
+            <label>
+                Language:
+                <input type="text" id="tag-input" onkeyup="switchTag(this)" />
+            </label>
+        </div>
+    </div>
+
+    <script src="dist/bundle.js" charset="utf-8"></script>
+    <script>
+        function switchTag(tag) {
+            choropleth.update(tag.value)
+        }
+
+        var barchart = new stacktrends.Barchart("bottom-left");
+        var choropleth = new stacktrends.Choropleth("bottom-right");
+    </script>
 </body>
 </html>
