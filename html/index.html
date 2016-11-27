@@ -3,6 +3,7 @@
 <head>
     <title>Stacktrends</title>
     <link rel="stylesheet" type="text/css" href="css/stacktrends.css">
+    <link rel="stylesheet" type="text/css" href="css/nv.d3.css">
 </head>
 <body>
     <div id="sidebar">
@@ -11,9 +12,7 @@
         <fieldset class="list"></fieldset>
     </div>
     <div class="layout-column">
-        <div id="top-left" class="chart-container">
-            <h2><a href="linechart.html">Line Chart</a></h2>
-        </div>
+        <div id="top-left" class="chart-container"></div>
         <div id="bottom-left" class="chart-container"></div>
     </div>
     <div class="layout-column">
@@ -33,6 +32,7 @@
         }
 
         var taglist = new stacktrends.Taglist("sidebar");
+        var linechart = new stacktrends.LinechartNvd3("top-left");
         var barchart = new stacktrends.Barchart("bottom-left");
         var choropleth = new stacktrends.Choropleth("bottom-right");
     </script>
