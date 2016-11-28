@@ -22,13 +22,11 @@ export default class {
                 highlightBorderColor: '#b7b7b7',
                 // show desired information in tooltip
                 popupTemplate: function(geo, data) {
-                    // don't show tooltip if country not present in dataset
-                    if (!data) { return ; }
-                    // tooltip content
-                    return ['<div class="hoverinfo">',
-                    '<strong>', geo.properties.name, '</strong>',
-                    '<br>Count: <strong>', data.count, '</strong>',
-                    '</div>'].join('');
+                    var count = data.count || "N/A";
+                    return `<div class="hoverinfo">
+                        <strong>${geo.properties.name}</strong>
+                        <br>Count: <strong>${count}</strong>
+                        </div>`;
                 }
             },
             done: function(datamap) {
@@ -44,6 +42,16 @@ export default class {
                     });
             }
         });
+
+        window.addEventListener(
+                "primaryTagChange",
+                this.onPrimaryTagChange.bind(this),
+                false);
+    }
+
+    onPrimaryTagChange(event) {
+        this.update(event.detail);
+        document.getElementById("tag-input").value = event.detail; //FIXME
     }
 
     async update(tag) {

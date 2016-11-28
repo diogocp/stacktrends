@@ -14,7 +14,10 @@ module.exports = {
             loader: "babel-loader",
             query: {
                 presets: ["es2015"],
-                plugins: ["transform-async-to-generator"]
+                plugins: [
+                    ["transform-async-to-generator"],
+                    ["transform-es2015-template-literals"]
+                ]
             }
           }
         ]

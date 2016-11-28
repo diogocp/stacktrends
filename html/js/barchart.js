@@ -18,7 +18,7 @@ export default class {
                 false);
     }
 
-    async draw() {
+    draw() {
         var container = this.container;
 
         nv.addGraph(function() {
@@ -35,7 +35,13 @@ export default class {
             return chart;
         },
         chart => {
-            this.chart = chart;
+            chart.discretebar.dispatch.on("elementClick", event => {
+                window.dispatchEvent(new CustomEvent(
+                            "primaryTagChange", {
+                                detail: event.data.tag
+                            }));
+            });
+            return this.chart = chart;
         });
     }
 
@@ -54,20 +60,27 @@ export default class {
             .call(this.chart);
     }
 
-    async onTagSelectionChange(event) {
+    onTagSelectionChange(event) {
         this.selectedTags = event.detail;
         this.update();
     }
 
-    async onCountryClick(event) {
+    onCountryClick(event) {
         this.selectedCountry = event.detail;
+        document.getElementById("country-input").value = event.detail; //FIXME
         this.update();
     }
 
     async filterData(country, tags) {
+        if(!country || !tags) {
+            return [];
+        }
+
         var dataset = await this.dataset;
 
-        if(!dataset[country]) return [];
+        if(!dataset[country]) {
+            return [];
+        }
 
         return [{
             key: country,
