@@ -74,7 +74,8 @@ class ArcGISCountryCoder(CountryCoder):
         response = None
         for attempt in range(self.retries + 1):
             try:
-                response = self._geocoder.geocode(location)
+                response = self._geocoder.geocode(location,
+                                                  out_fields=("Country",))
                 break
             except geopy.exc.GeocoderTimedOut as e:
                 if attempt < self.retries:
@@ -86,7 +87,7 @@ class ArcGISCountryCoder(CountryCoder):
                 print("[ArcGIS] '%s':" % location, e)
 
         try:
-            return response.raw["feature"]["attributes"]["Country"]
+            return response.raw["attributes"]["Country"]
         except (AttributeError, KeyError):
             return None
 
