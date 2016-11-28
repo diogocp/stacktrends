@@ -67,7 +67,6 @@ export default class {
 
     onCountryClick(event) {
         this.selectedCountry = event.detail;
-        document.getElementById("country-input").value = event.detail; //FIXME
         this.update();
     }
 
