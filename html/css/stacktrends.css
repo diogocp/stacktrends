@@ -35,7 +35,10 @@ body {
     flex: 1;
 }
 .chart-container {
-    margin: 2px;
+    box-sizing: border-box;
+    padding: 4px;
+    height: 50%;
+    width: 100%;
     border: 1px solid;
-    flex: 1;
+    border-color: #a0a0a0;
 }
