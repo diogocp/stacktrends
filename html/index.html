@@ -26,11 +26,13 @@
     <div class="layout-column">
         <div id="top-right" class="chart-container"></div>
         <div id="bottom-right" class="chart-container">
-            <label>
-                Language:
-                <input type="text" id="tag-input"
-                       onkeyup="switchTag(this)" />
-            </label>
+            <div style="float: right; clear: both;">
+                <select id="map-tag-select" class="chosen-select"
+                        data-placeholder="Choose a language..."
+                        style="width: 15em;"
+                        onchange="switchTag(this)">
+                </select>
+            </div>
         </div>
     </div>
 
@@ -47,6 +49,7 @@
         // Create all the charts
         var taglist = new stacktrends.Taglist("sidebar");
         var countrylist = new stacktrends.Countrylist("country-select");
+        var countrylist = new stacktrends.Maptaglist("map-tag-select");
         var linechart = new stacktrends.Linechart("top-left");
         var barchart = new stacktrends.Barchart("bottom-left");
         var choropleth = new stacktrends.Choropleth("bottom-right");

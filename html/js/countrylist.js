@@ -4,13 +4,12 @@ import {countries} from "country-data";
 
 export default class {
     constructor(container) {
-        console.log(countries);
         var listHtml = '<option value=""></option>';
         countries.all.forEach(item => {
             listHtml += `<option value="${item.alpha3}">${item.name}</option>`;
         });
 
-        this.list = $(".chosen-select");
+        this.list = $("#" + container);
         this.list.append(listHtml);
         this.list.chosen();
 
@@ -23,6 +22,5 @@ export default class {
     onCountryClick(event) {
         this.list.val(event.detail);
         this.list.trigger("chosen:updated");
-        console.log(event);
     }
 }
