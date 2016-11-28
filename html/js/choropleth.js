@@ -30,6 +30,18 @@ export default class {
                     '<br>Count: <strong>', data.count, '</strong>',
                     '</div>'].join('');
                 }
+            },
+            done: function(datamap) {
+                datamap.svg
+                    .selectAll(".datamaps-subunit")
+                    .on("click", function(geography) {
+                        window.dispatchEvent(
+                                new CustomEvent(
+                                    "countryClick",
+                                    {detail: geography.id}
+                                    )
+                                );
+                    });
             }
         });
     }

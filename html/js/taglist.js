@@ -32,7 +32,7 @@ export default class {
             return;
         }
 
-        parent.dispatchEvent(new CustomEvent(
+        window.dispatchEvent(new CustomEvent(
                     "tagSelectionChange", {
                         detail: this.enabledTags
                     }));

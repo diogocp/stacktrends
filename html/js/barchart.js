@@ -12,6 +12,10 @@ export default class {
                 "tagSelectionChange",
                 this.onTagSelectionChange.bind(this),
                 false);
+        window.addEventListener(
+                "countryClick",
+                this.onCountryClick.bind(this),
+                false);
     }
 
     async draw() {
@@ -22,8 +26,7 @@ export default class {
                 .x(function(d) { return d.tag })
                 .y(function(d) { return d.count })
                 .showValues(true)
-                .duration(500)
-                .noData("Please select one or more programming languages");
+                .duration(500);
 
             container.append("svg").datum([]).call(chart);
 
@@ -36,14 +39,14 @@ export default class {
         });
     }
 
-    async onTagSelectionChange(event) {
-        var selectedTags = event.detail;
-
-        // FIXME select correct country
-        var data = await this.filterData("USA", selectedTags);
+    async update() {
+        var data = await this.filterData(this.selectedCountry,
+                this.selectedTags);
 
         // Stagger labels when there are more than 8 bars
-        this.chart.staggerLabels(data[0].values.length > 8);
+        if(data.length) {
+            this.chart.staggerLabels(data[0].values.length > 8);
+        }
 
         this.container
             .select("svg")
@@ -51,8 +54,20 @@ export default class {
             .call(this.chart);
     }
 
+    async onTagSelectionChange(event) {
+        this.selectedTags = event.detail;
+        this.update();
+    }
+
+    async onCountryClick(event) {
+        this.selectedCountry = event.detail;
+        this.update();
+    }
+
     async filterData(country, tags) {
         var dataset = await this.dataset;
+
+        if(!dataset[country]) return [];
 
         return [{
             key: country,
