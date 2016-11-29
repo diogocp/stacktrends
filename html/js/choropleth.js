@@ -51,7 +51,6 @@ export default class {
 
     onPrimaryTagChange(event) {
         this.update(event.detail);
-        document.getElementById("tag-input").value = event.detail; //FIXME
     }
 
     async update(tag) {
