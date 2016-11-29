@@ -31,7 +31,9 @@
     "webpack-dev-server": "^1.16.2"
   },
   "scripts": {
-    "build": "webpack",
+    "build": "webpack -p",
+    "predeploy": "npm run build",
+    "deploy": "./deploy.sh",
     "dev": "webpack-dev-server --content-base public/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -49,5 +51,5 @@
   "bugs": {
     "url": "https://github.com/diogocp/stacktrends/issues"
   },
-  "homepage": "https://github.com/diogocp/stacktrends"
+  "homepage": "https://git.io/stacktrends"
 }

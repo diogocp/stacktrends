@@ -1,2 +1,4 @@
-/node_modules/
 /public/dist/
+
+npm-debug.log*
+/node_modules/
