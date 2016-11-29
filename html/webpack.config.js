@@ -27,7 +27,9 @@ module.exports = {
           { // Chosen needs jQuery in the global namespace
               test: /chosen-js\/.+\.(jsx|js)$/,
               loader: "imports?jQuery=jquery,$=jquery,this=>window"
-          }
+          },
+          { test: /\.css$/, loader: "style-loader!css-loader" },
+          { test: /\.png$/, loader: "url-loader?limit=100000" }
         ]
     },
     devtool: "source-map"

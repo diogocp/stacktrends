@@ -4,3 +4,7 @@ export {default as Countrylist} from "./countrylist.js";
 export {default as Barchart} from "./barchart.js";
 export {default as Linechart} from "./linechart.js";
 export {default as Choropleth} from "./choropleth.js";
+
+
+import "../node_modules/nvd3/build/nv.d3.min.css";
+import "../node_modules/chosen-js/chosen.css";
