@@ -11,17 +11,14 @@ def main():
 
     con = sqlite3.connect(config["Database"]["filename"])
 
-    import_table(con, "Tags.xml",
-                 ("Id", "TagName", "Count"),
-                 ("INTEGER PRIMARY KEY", "TEXT", "INTEGER"))
-    import_table(con, "Users.xml",
-                 ("Id", "Location", "Age"),
-                 ("INTEGER PRIMARY KEY", "TEXT", "INTEGER"))
-    import_table(con, "Posts.xml",
+    import_table(con, "data/raw/Users.xml",
+                 ("Id", "Location"),
+                 ("INTEGER PRIMARY KEY", "TEXT"))
+    import_table(con, "data/raw/Posts.xml",
                  ("Id", "PostTypeId", "ParentId", "CreationDate",
-                  "OwnerUserId", "Tags", "AnswerCount"),
+                  "OwnerUserId", "Tags"),
                  ("INTEGER PRIMARY KEY", "INTEGER", "INTEGER", "TEXT",
-                  "INTEGER", "TEXT", "INTEGER"))
+                  "INTEGER", "TEXT"))
 
     # Clean up users.Location
     con.execute("UPDATE users SET Location = TRIM(Location)")
