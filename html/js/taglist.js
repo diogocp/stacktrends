@@ -54,6 +54,13 @@ export default class {
                 .getElementsByTagName("input")[0]
                 .click();
         }
+        // Otherwise, look for an exact match and select it if it exists
+        var text = event.srcElement.value;
+        this.list.matchingItems.forEach(item => {
+            if(item.values().tag == text) {
+                item.elm.getElementsByTagName("input")[0].click();
+            }
+        });
     }
 
     loadData(filename) {
