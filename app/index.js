@@ -1,4 +1,3 @@
-import "../css/stacktrends.css";
 import "chosen-js/chosen.css";
 import "nvd3/build/nv.d3.min.css";
 

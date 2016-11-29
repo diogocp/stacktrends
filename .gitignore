@@ -1,5 +1,2 @@
-__pycache__/
-venv/
-
-node_modules/
-/html/dist/
+/node_modules/
+/public/dist/

@@ -1,17 +1,16 @@
 Stacktrends
 ===========
 
-Running the visualization
--------------------------
-
 You will need `npm` to build the project.
 
-1. Run the following commands in your shell:
+To install the project dependencies, run
 ```sh
-cd html
 npm install
+```
+
+To build the project and start an HTTP server, run
+```sh
 npm run dev
 ```
-2. Open http://localhost:8080 in your browser.
 
-The project will be rebuilt automatically whenever a file is changed.
+The application will then be available at [http://localhost:8080](http://localhost:8080). As long as you leave the `npm run dev` process running, the project will be rebuilt automatically whenever a file is changed.

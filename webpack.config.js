@@ -1,8 +1,8 @@
 module.exports = {
-    entry: ["babel-polyfill", "./js/index.js"],
+    entry: ["babel-polyfill", "./app/index.js"],
     output: {
-        filename: "bundle.js",
-        path: "./dist",
+        filename: "stacktrends.js",
+        path: "./public/dist",
         publicPath: "/dist/",
         library: "stacktrends"
     },
