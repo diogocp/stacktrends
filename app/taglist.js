@@ -32,6 +32,11 @@ export default class {
             return;
         }
 
+        // Keep the list sorted (case-insensitive)
+        this.enabledTags.sort(
+            (a, b) => a.toLowerCase().localeCompare(b.toLowerCase())
+        );
+
         window.dispatchEvent(new CustomEvent(
                     "tagSelectionChange", {
                         detail: this.enabledTags
