@@ -18,8 +18,33 @@ export default class {
     }
 
     onTagSelectionChange(event) {
-        var listHtml = this.generateListHtml(event.detail);
+        // Store the currently selected tag
+        var currentTag = this.list.val();
+
+        // Generate the new tag list
+        var selectedTags = event.detail;
+        var listHtml = this.generateListHtml(selectedTags);
         this.list.empty().append(listHtml);
+
+        // Reselect the previously selected tag, if possible.
+        if(event.detail.indexOf(currentTag) != -1) {
+            this.list.val(currentTag);
+        }
+        else if(selectedTags.length == 1) {
+            window.dispatchEvent(
+                new CustomEvent(
+                    "primaryTagChange",
+                    {detail: selectedTags[0]}
+                ));
+        }
+        else {
+            window.dispatchEvent(
+                new CustomEvent(
+                    "primaryTagChange",
+                    {detail: ""}
+                ));
+        }
+
         this.list.trigger("chosen:updated");
     }
 
