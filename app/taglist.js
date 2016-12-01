@@ -4,15 +4,19 @@ import d3Promise from "d3.promise";
 
 export default class {
     constructor(parentId) {
-        this.dataset = this.loadData("data/tag.csv");
+        this.dataset = this.loadData("data/tags.json");
         this.enabledTags = [];
 
         var options = {
-            valueNames: ["tag"],
-            item: ['<label>',
-            '<input type="checkbox" onclick="taglist.onTagSelectionChange(this)"/>',
-            '<span class="tag"></span><br/>',
-            '</label>'].join("")
+            valueNames: [
+                "taglist-name",
+                {attr: "value", name: "taglist-value"}
+            ],
+            item: `<label>
+                       <input class="taglist-value" type="checkbox"
+                              onclick="taglist.onClick(this)"/>
+                       <span class="taglist-name"></span><br/>
+                  </label>`
         };
 
         this.dataset.then(data => {
@@ -20,15 +24,20 @@ export default class {
         });
     }
 
-    onTagSelectionChange(elem) {
-        var tag = elem.nextElementSibling.innerText;
-        var index = this.enabledTags.indexOf(tag);
+    onClick(elm) {
+        var tag = elm.value;
 
-        if(index > -1 && !elem.checked) {
+        // Check if a previously selected tag tag was deselected
+        var index = this.enabledTags.indexOf(tag);
+        if(index > -1 && !elm.checked) {
             this.enabledTags.splice(index, 1);
-        } else if(index == -1 && elem.checked) {
+        }
+        // Check if a previously unselected tag was selected
+        else if(index == -1 && elm.checked) {
             this.enabledTags.push(tag);
-        } else {
+        }
+        // This should be unreachable; it means there was no change
+        else {
             return;
         }
 
@@ -51,24 +60,30 @@ export default class {
             return;
         }
 
+        var items = this.list.matchingItems;
+
         // If there is only one tag in the filter results, select it
-        if(this.list.matchingItems.length == 1) {
-            this.list
-                .matchingItems[0]
-                .elm
-                .getElementsByTagName("input")[0]
-                .click();
+        if(items.length == 1) {
+            items[0].elm.getElementsByTagName("input")[0].click();
+            return;
         }
         // Otherwise, look for an exact match and select it if it exists
-        var text = event.srcElement.value;
-        this.list.matchingItems.forEach(item => {
-            if(item.values().tag == text) {
+        var text = event.target.value.toLowerCase();
+        items.forEach(item => {
+            if(text == item.values()["taglist-value"].toLowerCase()) {
                 item.elm.getElementsByTagName("input")[0].click();
             }
         });
     }
 
     loadData(filename) {
-        return d3Promise.csv(filename);
+        return d3Promise.json(filename).then(data => {
+                return data.map(tag => {
+                    return {
+                        "taglist-name": tag,
+                        "taglist-value": tag
+                    };
+                });
+        });
     }
 }

@@ -35,7 +35,7 @@ export default class {
                     if (d == null) {
                         return 'N/A';
                     }
-                    return d3.format(',.0f')(d);
+                    return d3.format(',.3f')(d);
                 });
 
             d3.select("#" + container)
@@ -73,8 +73,8 @@ export default class {
                 dataset[item.tag] = {key: item.tag, values: []};
             }
             dataset[item.tag].values.push({
-                x: +item.date,
-                y: +item.count
+                x: +item.year,
+                y: +item.pct,
             });
         });
 
