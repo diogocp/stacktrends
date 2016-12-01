@@ -4,31 +4,37 @@ import d3Promise from "d3.promise";
 
 export default class {
     constructor(container) {
-        this.dataset = this.loadData("data/tag.csv");
+        this.list = $("#" + container);
+        this.list.chosen();
 
-        var listHtml = '<option value=""></option>';
-        this.dataset.then(data => {
-            data.forEach(item => {
-                listHtml += `<option value="${item.tag}">${item.tag}</option>`;
-            });
-
-            this.list = $("#" + container);
-            this.list.append(listHtml);
-            this.list.chosen();
-        });
-
+        window.addEventListener(
+                "tagSelectionChange",
+                this.onTagSelectionChange.bind(this),
+                false);
         window.addEventListener(
                 "primaryTagChange",
                 this.onPrimaryTagChange.bind(this),
                 false);
     }
 
-    onPrimaryTagChange(event) {//FIXME
+    onTagSelectionChange(event) {
+        var listHtml = this.generateListHtml(event.detail);
+        this.list.empty().append(listHtml);
+        this.list.trigger("chosen:updated");
+    }
+
+    onPrimaryTagChange(event) {
         this.list.val(event.detail);
         this.list.trigger("chosen:updated");
     }
 
-    loadData(filename) {
-        return d3Promise.csv(filename);
+    generateListHtml(list) {
+        var listHtml = '<option value=""></option>';
+
+        list.forEach(item => {
+            listHtml += `<option value="${item}">${item}</option>`;
+        });
+
+        return listHtml;
     }
 }
