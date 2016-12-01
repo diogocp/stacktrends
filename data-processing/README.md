@@ -29,21 +29,25 @@ This will import the relevant data from the XML files into an SQLite database in
 
 Geocoding locations
 -------------------
-Run the script:
+First, get a Bing API key and configure it in `stacktrends.ini`.
+
+Then, run the script:
 ```sh
     python 2_locations.py
 ```
+
+This will create a new table `locations` in the SQLite database (`data/stacktrends.sqlite`) with the geocoded locations.
 
 Note: if you want to pipe stdout or if your terminal does not support Unicode, run the following command instead:
 ```sh
     PYTHONIOENCODING="utf-8" python 2_locations.py
 ```
 
-This will create a new table `locations` in the SQLite database (`data/stacktrends.sqlite`) with the geocoded locations.
-
 
 Creating the tidy data sets
 ---------------------------
+Warning: you will need at least 50 GiB of RAM to run this step (64 GiB recommended).
+
 Run the script:
 ```sh
     python 3_create-datasets.py

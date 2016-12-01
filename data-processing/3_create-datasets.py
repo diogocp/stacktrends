@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import configparser
+import os
 import sqlite3
 
 import numpy as np
 import pandas as pd
+import pycountry
 
 
 def main():
@@ -19,85 +21,89 @@ def main():
                               parse_dates=["CreationDate"])
     con.close()
 
-    # Merges
-    users_countries = merge_users_countries(users, locations)
-    posts_countries = merge_posts_countries(posts, users_countries)
-    posts_exploded = explode_tags(posts_countries)
+    #
+    # Prepare data
+    #
 
-    # Apply filters (configure in stacktrends.ini)
-    my_countries = filter_countries(users_countries, posts_countries, config)
-    my_tags = filter_tags(config)
+    users = merge_users_countries(users, locations)
+    posts = merge_posts_countries(posts, users)
 
-    my_posts = posts_exploded[posts_exploded["Country"].isin(my_countries)]
-    my_posts = my_posts[my_posts["Tag"].isin(my_tags)]
+    posts["year"] = posts["CreationDate"].dt.strftime("%Y")
+    posts = explode_tags(posts)
 
-    # Simplify column names
-    my_posts = my_posts.rename(columns={"Tag": "tag",
-                                        "CreationDate": "date",
-                                        "OwnerUserId": "user",
-                                        "Country": "country"})
+    # Clean up tag names
+    selected_tags = get_selected_tags(config)
+    posts = posts.merge(selected_tags, "left", left_on="tag", right_index=True)
+    posts.drop("tag", axis=1, inplace=True)
+    posts.rename(columns={"newname": "tag"}, inplace=True)
+    posts.loc[:, "tag"] = posts["tag"].where(pd.notnull(posts["tag"]), "Other")
 
-    # Output to SQLite database
-    con = sqlite3.connect(config["Database"]["filename"])
-    my_posts.to_sql("my_posts", con, if_exists="replace", index_label="post")
-    con.close()
+    #
+    # Create final data sets
+    #
 
-    # Create summary datasets
-    summary_table(my_posts).to_csv("tag.csv")
-    summary_table(my_posts, period="month").to_csv("tag_month.csv")
-    summary_table(my_posts, period="year").to_csv("tag_year.csv")
-    summary_table(my_posts, by_country=True).to_csv("country_tag.csv")
-    summary_table(my_posts, "month", True).to_csv("country_tag_month.csv")
-    summary_table(my_posts, "year", True).to_csv("country_tag_year.csv")
+    os.chdir("data")
 
-    tag_correlation_table(my_posts).to_csv("tag_correlation.csv")
+    # List of tags
+    selected_tags["newname"].to_json("tags.json", orient="values")
 
+    # list of countries
+    country_table(users).to_json("countries.json", orient="index")
 
-def summary_table(posts, period=None, by_country=False):
-    posts = posts[["country", "tag", "date"]].reset_index()
+    # Count and relative frequency of tags by year (line chart)
+    summary_table(posts, group_by=["tag", "year"],
+                  percentage_by="year").to_csv("tag_year.csv")
 
-    groups = ["tag"]
-    if by_country:
-        groups = ["country"] + groups
-    if period is not None:
-        groups = groups + ["date"]
+    # Count and relative frequency of tags by country (bar chart / choropleth)
+    summary_table(posts, group_by=["country", "tag"],
+                  percentage_by="country").to_csv("country_tag.csv")
 
-        if period == "year":
-            posts["date"] = posts["date"].dt.strftime("%Y")
-        elif period == "quarter":
-            raise NotImplemented
-        elif period == "month":
-            posts["date"] = posts["date"].dt.strftime("%Y-%m")
-        else:
-            raise ValueError("Invalid period '%s'" % period)
-
-    return posts.groupby(groups).count()["index"].rename()
+    # Tag co-occurrence matrix (chord diagram)
+    tag_matrix(posts).to_csv("tag_matrix.csv")
 
 
-def tag_correlation_table(posts):
+def summary_table(posts, group_by, percentage_by=None):
+    df = posts.reset_index().groupby(group_by).count()[["index"]]
+    df.rename(columns={"index": "count"}, inplace=True)
+
+    if percentage_by is not None:
+        df["pct"] = (100 * df) / df.groupby(level=percentage_by).sum()
+
+    return df
+
+
+def country_table(users):
+    countries = users.reset_index()
+    countries = countries.groupby("country").count()
+
+    countries.rename(columns={"user": "users"}, inplace=True)
+
+    countries["name"] = countries.index.map(lambda country:
+        pycountry.countries.get(alpha_3=country).name)
+
+    return countries
+
+
+def tag_matrix(posts):
     posts = posts[["tag", "user"]].reset_index()
     user_tag = posts.groupby(["tag", "user"]).count()
     user_tag = user_tag.reset_index().set_index("user")[["tag"]]
 
     tag_pairs = user_tag.join(user_tag, lsuffix="1", rsuffix="2")
     tag_pairs = tag_pairs.reset_index().groupby(["tag1", "tag2"]).count()
-    tag_pairs = tag_pairs.rename(columns={"user": "both"}).reset_index()
+    tag_pairs = tag_pairs.rename(columns={"user": "count"}).reset_index()
 
-    totals = user_tag.reset_index().groupby("tag").count()
-    tag_pairs = tag_pairs.merge(totals, left_on="tag1", right_index=True)
-    tag_pairs = tag_pairs.rename(columns={"user": "first"})
-
-    tag_pairs["prob"] = tag_pairs["both"] / tag_pairs["first"]
-
-    return tag_pairs.set_index(["tag1", "tag2"])["prob"]
+    return tag_pairs.pivot("tag1", "tag2", "count")
 
 
 def merge_users_countries(users, locations):
     users = users.reset_index()
     users = users.merge(locations, "left", on="Location")[["Id", "Country"]]
-    users.set_index("Id", inplace=True)
 
-    return users[pd.notnull(users["Country"])]
+    users.rename(columns={"Id": "user", "Country": "country"}, inplace=True)
+    users.set_index("user", inplace=True)
+
+    return users[pd.notnull(users["country"])]
 
 
 def merge_posts_countries(posts, users):
@@ -105,8 +111,8 @@ def merge_posts_countries(posts, users):
                         right_index=True)
 
     # Use None instead of NaN for missing countries
-    posts.loc[:, "Country"] = posts["Country"].where(
-                                  pd.notnull(posts["Country"]), None)
+    posts.loc[:, "country"] = posts["country"].where(
+                                  pd.notnull(posts["country"]), None)
 
     return posts
 
@@ -129,7 +135,8 @@ def explode_tags(posts):
     posts.update(answers_tags[["Tags"]])
 
     # Keep only the columns we are going to use
-    posts = posts[["CreationDate", "Tags", "OwnerUserId", "Country"]]
+    posts = posts[["year", "Tags", "OwnerUserId", "country"]]
+    posts.rename(columns={"OwnerUserId": "user"}, inplace=True)
 
     # Keep only posts that have at least one tag
     posts = posts[~pd.isnull(posts["Tags"])]
@@ -139,29 +146,20 @@ def explode_tags(posts):
     # observation of a post will have a single tag.
     new_index = np.hstack([[post_id] * len(tag) for post_id, tag
                            in posts["Tags"].iteritems()])
-    posts_tags = pd.DataFrame({"Tag": np.hstack(posts["Tags"])}, new_index)
+    posts_tags = pd.DataFrame({"tag": np.hstack(posts["Tags"])}, new_index)
 
-    return posts_tags.join(posts[["CreationDate", "OwnerUserId", "Country"]])
-
-
-def filter_countries(users_countries, posts_countries, config):
-    min_users = int(config["Filters"]["min_users_per_country"])
-    min_posts = int(config["Filters"]["min_posts_per_country"])
-
-    num_users = users_countries.reset_index().groupby("Country")["Id"].count()
-    ok_users = num_users[num_users >= min_users].index
-
-    num_posts = posts_countries.reset_index().groupby("Country")["Id"].count()
-    ok_posts = num_posts[num_posts >= min_posts].index
-
-    return ok_users.intersection(ok_posts)
+    return posts_tags.join(posts[["year", "user", "country"]])
 
 
-def filter_tags(config):
-    selected_tags = pd.read_csv(config["Filters"]["selected_tags"])
-    selected_tags = selected_tags[selected_tags["selected"] == 1]
+def get_selected_tags(config):
+    df = pd.read_csv(config["Filters"]["selected_tags"])
+    df = df[df["selected"] == 1]
 
-    return selected_tags.set_index("tag").index
+    # Sort by correctly-formatted name
+    df.set_index("newname", drop=False, inplace=True)
+    df = df.reindex(sorted(df.index, key=lambda x: x.lower()))
+
+    return df.set_index("tag")[["newname"]]
 
 
 if __name__ == "__main__":
