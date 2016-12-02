@@ -14,7 +14,7 @@
     <div class="layout-column">
         <div id="top-left" class="chart-container"></div>
         <div id="bottom-left" class="chart-container">
-            <div style="float: right; clear: both;">
+            <div class="dropdown-list-container">
                 <select id="country-select" class="chosen-select"
                         data-placeholder="Choose a country..."
                         onchange="switchCountry(this)">
@@ -25,11 +25,10 @@
     <div class="layout-column">
         <div id="top-right" class="chart-container"></div>
         <div id="bottom-right" class="chart-container">
-            <div style="float: right; clear: both;">
+            <div class="dropdown-list-container">
                 <select id="map-tag-select" class="chosen-select"
                         data-placeholder="Choose a language..."
-                        style="width: 15em;"
-                        onchange="switchTag(this)">
+                        onchange="switchTag(this)" disabled="true">
                 </select>
             </div>
         </div>

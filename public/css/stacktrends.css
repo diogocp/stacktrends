@@ -41,3 +41,12 @@ body {
     border: 1px solid;
     border-color: #a0a0a0;
 }
+
+.dropdown-list-container {
+    float: right;
+    clear: both;
+}
+
+#map-tag-select {
+    width: 14em;
+}

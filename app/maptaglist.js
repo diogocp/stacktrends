@@ -45,6 +45,13 @@ export default class {
                 ));
         }
 
+        if(selectedTags.length) {
+            this.list.attr("disabled", false);
+        }
+        else {
+            this.list.attr("disabled", true);
+        }
+
         this.list.trigger("chosen:updated");
     }
 
