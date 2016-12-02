@@ -76,6 +76,25 @@ export default class {
         });
     }
 
+    reset() {
+        this.enabledTags = [];
+
+        // Clear search field
+        document.getElementsByClassName("search")[0].value = "";
+        this.list.search();
+
+        // Clear check boxes
+        this.list.items.forEach(item => {
+            item.elm.getElementsByTagName("input")[0].checked = false;
+        });
+
+        // Reset charts
+        window.dispatchEvent(new CustomEvent(
+            "tagSelectionChange", {
+                detail: this.enabledTags
+            }));
+    }
+
     loadData(filename) {
         return d3Promise.json(filename).then(data => {
                 return data.map(tag => {
