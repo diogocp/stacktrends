@@ -28,6 +28,12 @@ export default class {
                 .showValues(true)
                 .duration(500);
 
+            chart.valueFormat(d3.format(",.0f"));
+
+            chart.yAxis
+                .axisLabel("Number of Posts")
+                .tickFormat(d => d3.format(",.0f")(d));
+
             container.append("svg").datum([]).call(chart);
 
             nv.utils.windowResize(chart.update);
