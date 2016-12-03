@@ -1,3 +1,5 @@
+import "mdi/css/materialdesignicons.min.css";
+import "pretty-checkbox/src/pretty.min.css";
 import "chosen-js/chosen.css";
 import "nvd3/build/nv.d3.min.css";
 

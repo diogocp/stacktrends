@@ -12,11 +12,16 @@ export default class {
                 "taglist-name",
                 {attr: "value", name: "taglist-value"}
             ],
-            item: `<label>
+            item: `<div>
+                     <div class="pretty sucess smooth">
                        <input class="taglist-value" type="checkbox"
                               onclick="taglist.onClick(this)"/>
-                       <span class="taglist-name"></span><br/>
-                  </label>`
+                       <label>
+                         <i class="mdi mdi-check"></i>
+                         <span class="taglist-name"></span>
+                       </label>
+                     </div>
+                   </div>`
         };
 
         this.dataset.then(data => {

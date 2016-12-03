@@ -29,7 +29,11 @@ module.exports = {
               loader: "imports?jQuery=jquery,$=jquery,this=>window"
           },
           { test: /\.css$/, loader: "style-loader!css-loader" },
-          { test: /\.png$/, loader: "url-loader?limit=100000" }
+          { test: /\.png$/, loader: "url-loader?limit=100000" },
+          {
+            test: /\/mdi\/fonts/,
+            loader: 'file?name=fonts/[name].[ext]'
+          }
         ]
     },
     devtool: "source-map"
