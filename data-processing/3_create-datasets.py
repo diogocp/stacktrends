@@ -59,7 +59,7 @@ def main():
                   percentage_by="country").to_csv("country_tag.csv")
 
     # Tag co-occurrence matrix (chord diagram)
-    tag_matrix(posts).to_csv("tag_matrix.csv")
+    tag_matrix(posts).to_json("tag_matrix.json")
 
 
 def summary_table(posts, group_by, percentage_by=None):
