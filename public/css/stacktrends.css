@@ -42,6 +42,12 @@ body {
     border-color: #a0a0a0;
 }
 
+/* "position: relative;" is needed for
+ * correct tooltip placement in Datamaps. */
+#bottom-right {
+    position: relative;
+}
+
 .dropdown-list-container {
     float: right;
     clear: both;
