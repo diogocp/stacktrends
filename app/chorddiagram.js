@@ -41,7 +41,9 @@ export default class {
         var g = svg.selectAll(".group")
             .data(chord.groups)
             .enter().append("g")
-            .attr("class", "group");
+            .attr("class", "group")
+	.on("mouseover", this.fade(svg,.02))
+	    .on("mouseout", this.fade(svg,.80));
 
         g.append("path")
             .style("fill", d => fill(d.index))
@@ -70,6 +72,21 @@ export default class {
 
         d3.select(self.frameElement).style("height", outerRadius * 2 + "px");
     }
+
+
+	// Returns an event handler for fading a given chord group.
+ fade(svg,opacity) {
+  return function(d, i) {
+    svg.selectAll("path.chord")
+        .filter(function(d) { return d.source.index != i && d.target.index != i; })
+      .transition()
+        .style("stroke-opacity", opacity)
+        .style("fill-opacity", opacity);
+  };
+}
+	
+
+
 
     clear() {
         this.container.select("svg").remove();
