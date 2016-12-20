@@ -34,18 +34,14 @@ body {
     flex: 1;
 }
 .chart-container {
+    position: relative;
+    overflow: hidden;
     box-sizing: border-box;
     padding: 4px;
     height: 50%;
     width: 100%;
     border: 1px solid;
     border-color: #a0a0a0;
-}
-
-/* "position: relative;" is needed for
- * correct tooltip placement in Datamaps. */
-#bottom-right {
-    position: relative;
 }
 
 .dropdown-list-container {
@@ -66,18 +62,3 @@ body {
 #bottom-left .nvd3 .nv-axis.nv-y path.domain{
     stroke-opacity: 0;
 }
-
-/* Chord diagram: responsive SVG
- * http://stackoverflow.com/questions/16265123 */
-#top-right {
-    position: relative;
-    overflow: hidden;
-}
-
-.svg-content-responsive {
-    display: inline-block;
-    position: absolute;
-    top: 10px;
-    left: 0;
-}
-

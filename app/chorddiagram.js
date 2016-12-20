@@ -15,7 +15,7 @@ export default class {
     }
 
     draw(dataset) {
-        var outerRadius = 280,
+        var outerRadius = 260,
             innerRadius = outerRadius - 150;
 
         var fill = d3.scale.category20c();
@@ -32,11 +32,13 @@ export default class {
         // Responsive SVG: http://stackoverflow.com/questions/16265123
         var svg = this.container
             .append("svg")
-            .attr("preserveAspectRatio", "xMinYMin meet")
-            .attr("viewBox", "0 0 640 640")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .attr("preserveAspectRatio", "xMidYMid meet")
+            .attr("viewBox", "0 0 400 400")
             .classed("svg-content-responsive", true)
             .append("g")
-            .attr("transform", "translate(340, 200)");
+            .attr("transform", "translate(200, 200)");
 
         chord.matrix(dataset.data);
 
@@ -70,9 +72,6 @@ export default class {
             .style("stroke", d => d3.rgb(fill(d.source.index)).darker())
             .style("fill", d => fill(d.source.index))
             .attr("d", d3.svg.chord().radius(innerRadius));
-
-
-        d3.select(self.frameElement).style("height", outerRadius * 2 + "px");
     }
 
     // Returns an event handler for fading a given chord group.
