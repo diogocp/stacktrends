@@ -34,6 +34,16 @@ export default class {
                 .axisLabel("Number of Posts")
                 .tickFormat(d => d3.format(",.0f")(d));
 
+            chart.tooltip.contentGenerator(obj =>
+                `<table><tbody><tr>
+                   <td class="legend-color-guide">
+                     <div style="background-color: ${obj.color};"></div>
+                   </td>
+                   <td class="key">${obj.data.tag}</td>
+                   <td class="value">${d3.format("0.3g")(obj.data.pct)}%</td>
+                 </tr></tbody></table>`
+            )
+
             container.append("svg").datum([]).call(chart);
 
             nv.utils.windowResize(chart.update);
@@ -105,7 +115,8 @@ export default class {
             }
             dataset[item.country].values.push({
                 tag: item.tag,
-                count: +item.count
+                count: +item.count,
+                pct: +item.pct
             });
         });
 
