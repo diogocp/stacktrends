@@ -56,3 +56,8 @@ body {
 #map-tag-select {
     width: 14em;
 }
+
+/* Don't show grid lines in the bar chart */
+#bottom-left .tick line {
+  display: none;
+}
