@@ -51,23 +51,35 @@ def main():
     country_table(users).to_json("countries.json", orient="index")
 
     # Count and relative frequency of tags by year (line chart)
-    summary_table(posts, group_by=["tag", "year"],
-                  percentage_by="year").to_csv("tag_year.csv")
+    summary_table(posts, group_by=["tag", "year"], freq=True,
+                  freq_by="year").to_csv("tag_year.csv")
 
     # Count and relative frequency of tags by country (bar chart / choropleth)
-    summary_table(posts, group_by=["country", "tag"],
-                  percentage_by="country").to_csv("country_tag.csv")
+    country_tag = summary_table(posts, group_by=["country", "tag"],
+                                freq=True, freq_by="country")
+
+    # Worldwide count and relative frequency of tags (bar char)
+    worldwide_tag = summary_table(posts, group_by=["tag"], freq=True)
+    worldwide_tag["country"] = "XXX"
+    worldwide_tag.set_index("country", append=True, inplace=True)
+    worldwide_tag = worldwide_tag.reorder_levels(["country", "tag"])
+
+    country_tag.append(worldwide_tag).to_csv("country_tag.csv")
 
     # Tag co-occurrence matrix (chord diagram)
     tag_matrix(posts).to_json("tag_matrix.json")
 
 
-def summary_table(posts, group_by, percentage_by=None):
+def summary_table(posts, group_by, freq=False, freq_by=None):
     df = posts.reset_index().groupby(group_by).count()[["index"]]
     df.rename(columns={"index": "count"}, inplace=True)
 
-    if percentage_by is not None:
-        df["pct"] = (100 * df) / df.groupby(level=percentage_by).sum()
+    if freq:
+        if freq_by is None:
+            by = df
+        else:
+            by = df.groupby(level=freq_by)
+        df["freq"] = df / by.sum()
 
     return df
 
