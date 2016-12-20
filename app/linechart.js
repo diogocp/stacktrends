@@ -30,12 +30,12 @@ export default class {
                 .staggerLabels(false);
 
             chart.yAxis
-                .axisLabel('Posts')
+                .axisLabel('Percentage of posts')
                 .tickFormat(d => {
                     if (d == null) {
                         return 'N/A';
                     }
-                    return d3.format(',.3f')(d);
+                    return d3.format('.3%')(d);
                 });
 
             chart.tooltip.contentGenerator(obj =>
@@ -96,7 +96,7 @@ export default class {
             }
             dataset[item.tag].values.push({
                 x: +item.year,
-                y: +item.pct,
+                y: +item.freq,
                 count: +item.count
             });
         });

@@ -8,7 +8,7 @@ export default class {
         this.countries = this.loadData("data/countries.json");
 
         this.countries.then(data => {
-            var listHtml = '<option value=""></option>';
+            var listHtml = '<option value="XXX">Worldwide</option>';
 
             for(var c in data) {
                 listHtml += `<option value="${c}">${data[c].name}</option>`;
