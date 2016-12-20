@@ -33,7 +33,8 @@ export default class {
 
             chart.yAxis
                 .axisLabel("Number of posts")
-                .tickFormat(d => d3.format(",.0f")(d));
+                .tickValues(false)
+                .showMaxMin(false);
 
             chart.tooltip.contentGenerator(obj =>
                 `<table><tbody><tr>

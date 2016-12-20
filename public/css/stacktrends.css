@@ -59,5 +59,10 @@ body {
 
 /* Don't show grid lines in the bar chart */
 #bottom-left .tick line {
-  display: none;
+    display: none;
+}
+
+/* Don't show y axis in the bar chart */
+#bottom-left .nvd3 .nv-axis.nv-y path.domain{
+    stroke-opacity: 0;
 }
