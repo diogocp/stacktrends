@@ -38,6 +38,28 @@ export default class {
                     return d3.format(',.3f')(d);
                 });
 
+            chart.tooltip.contentGenerator(obj =>
+                `<table>
+                   <thead><tr>
+                     <td colspan="3">
+                       <strong class="x-value">${obj.point.x}</strong>
+                     </td></tr>
+                   </thead>
+                   <tbody><tr>
+                     <td class="legend-color-guide">
+                       <div style="background-color: ${obj.point.color};">
+                       </div>
+                     </td>
+                     <td class="key">
+                       ${obj.series[0].key}
+                    </td>
+                     <td class="value">
+                       ${d3.format(",")(obj.point.count)}
+                     </td></tr>
+                   </tbody>
+                 </table>`
+            )
+
             d3.select("#" + container)
                 .append("svg")
                 .datum([])
@@ -75,6 +97,7 @@ export default class {
             dataset[item.tag].values.push({
                 x: +item.year,
                 y: +item.pct,
+                count: +item.count
             });
         });
 
