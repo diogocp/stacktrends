@@ -29,12 +29,14 @@ export default class {
             .innerRadius(innerRadius)
             .outerRadius(innerRadius + 20);
 
-        // SVG resizing: http://stackoverflow.com/questions/16265123
-        var svg = this.container.append("svg")
-            .attr("width", outerRadius * 2)
-            .attr("height", outerRadius * 2)
+        // Responsive SVG: http://stackoverflow.com/questions/16265123
+        var svg = this.container
+            .append("svg")
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 640 640")
+            .classed("svg-content-responsive", true)
             .append("g")
-            .attr("transform", `translate(${outerRadius+80},${outerRadius-50})`);
+            .attr("transform", "translate(340, 200)");
 
         chord.matrix(dataset.data);
 

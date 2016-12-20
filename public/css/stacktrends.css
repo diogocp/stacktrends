@@ -66,3 +66,18 @@ body {
 #bottom-left .nvd3 .nv-axis.nv-y path.domain{
     stroke-opacity: 0;
 }
+
+/* Chord diagram: responsive SVG
+ * http://stackoverflow.com/questions/16265123 */
+#top-right {
+    position: relative;
+    overflow: hidden;
+}
+
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    left: 0;
+}
+
