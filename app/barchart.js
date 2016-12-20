@@ -31,7 +31,7 @@ export default class {
             chart.valueFormat(d3.format(",.0f"));
 
             chart.yAxis
-                .axisLabel("Number of Posts")
+                .axisLabel("Number of posts")
                 .tickFormat(d => d3.format(",.0f")(d));
 
             chart.tooltip.contentGenerator(obj =>
@@ -40,7 +40,7 @@ export default class {
                      <div style="background-color: ${obj.color};"></div>
                    </td>
                    <td class="key">${obj.data.tag}</td>
-                   <td class="value">${d3.format("0.3g")(obj.data.pct)}%</td>
+                   <td class="value">${d3.format("0.3%")(obj.data.freq)}</td>
                  </tr></tbody></table>`
             )
 
@@ -116,7 +116,7 @@ export default class {
             dataset[item.country].values.push({
                 tag: item.tag,
                 count: +item.count,
-                pct: +item.pct
+                freq: +item.freq
             });
         });
 
