@@ -7,6 +7,7 @@ export default class {
     constructor(parentId) {
         this.dataset = this.loadData("data/country_tag.csv");
         this.container = d3.select("#" + parentId);
+        this.selectedCountry = "XXX";
         this.draw();
         window.addEventListener(
                 "tagSelectionChange",
